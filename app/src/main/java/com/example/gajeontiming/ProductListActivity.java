@@ -18,6 +18,7 @@ import com.example.gajeontiming.adapter.ProductAdapter;
 import com.example.gajeontiming.model.Product;
 import com.example.gajeontiming.model.ProductListResponse;
 import com.example.gajeontiming.network.ApiClient;
+import com.example.gajeontiming.scan.AccessoryFilter;
 import com.example.gajeontiming.scan.ModelNameExtractor;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.ChipGroup;
@@ -48,7 +49,8 @@ public class ProductListActivity extends AppCompatActivity {
 
     /**
      * 결과가 0건일 때 차례로 넓혀 볼 검색 방법들.
-     * [0] 원래 검색어 + 품목 → [1] 원래 검색어만 → [2..] 모델명 뒷부분을 줄인 검색어
+     * [0] 원래 검색어 + 품목 → [1..] 모델명 뒷자리를 줄인 검색어 + 품목 → [마지막] 원래 검색어, 품목 없이
+     * 품목을 빼면 서버의 소모품 차단도 꺼지므로 가장 마지막에 시도한다.
      */
     private static class Attempt {
         final String query;
@@ -129,13 +131,28 @@ public class ProductListActivity extends AppCompatActivity {
     private void buildAttempts() {
         attempts.clear();
         attempts.add(new Attempt(query, category));
-        if (category != null) attempts.add(new Attempt(query, null));
-        // 검색어가 모델명처럼 생겼으면 뒷부분을 줄인 검색어도 준비 (품목은 다시 붙여 소모품을 거른다)
+        // 검색어가 모델명처럼 생겼으면 뒷자리를 줄인 검색어 (품목은 그대로 붙여 소모품을 거른다)
         if (ModelNameExtractor.looksLikeModel(query)) {
             for (String shorter : ModelNameExtractor.shorterQueries(query)) {
                 attempts.add(new Attempt(shorter, category));
             }
         }
+        // 마지막 수단: 품목 필터 없이 원래 검색어로
+        if (category != null) attempts.add(new Attempt(query, null));
+    }
+
+    /**
+     * 모델명으로 찾는데 품목 필터가 없으면 서버가 소모품을 거르지 않으므로 앱이 거른다.
+     * (일반 검색어나 품목을 아는 검색은 서버 결과를 그대로 쓴다)
+     */
+    private List<Product> removeAccessoriesIfNeeded(List<Product> items) {
+        Attempt a = current();
+        if (items == null || a.category != null || !ModelNameExtractor.looksLikeModel(query)) return items;
+        List<Product> kept = new ArrayList<>();
+        for (Product p : items) {
+            if (!AccessoryFilter.isAccessory(p.title)) kept.add(p);
+        }
+        return kept;
     }
 
     private Attempt current() {
@@ -175,7 +192,8 @@ public class ProductListActivity extends AppCompatActivity {
                 // 한 페이지를 꽉 채워 오지 않았으면 마지막 페이지로 본다
                 hasMore = items != null && items.size() >= PAGE_SIZE;
 
-                if (items != null) adapter.addItems(items);
+                List<Product> shown = removeAccessoriesIfNeeded(items);
+                if (shown != null) adapter.addItems(shown);
 
                 if (adapter.getProductCount() == 0) {
                     // 첫 페이지가 0건이면 다음 방법으로 넓혀서 다시 찾는다
