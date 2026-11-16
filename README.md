@@ -98,9 +98,3 @@ app/src/main/java/com/example/gajeontiming/
 | `POST /api/auth/*` | 인증번호 · 회원가입 · 로그인 | |
 | `GET /api/user/me` | 내 정보 | 필요 |
 | `GET · POST · DELETE /api/user/alerts` | 가격 알림 관리 | 필요 |
-
-## 만든 사람
-
-| 이름 | 학번 |
-| --- | --- |
-| 박민규 | 202208107 |
