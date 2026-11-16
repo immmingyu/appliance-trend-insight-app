@@ -10,6 +10,7 @@ import com.example.gajeontiming.model.PricePositionResponse;
 import com.example.gajeontiming.model.ProductListResponse;
 import com.example.gajeontiming.model.ReportResponse;
 import com.example.gajeontiming.model.TimingResponse;
+import com.example.gajeontiming.model.UserProfile;
 import com.example.gajeontiming.model.TrendResponse;
 
 import retrofit2.Call;
@@ -103,4 +104,8 @@ public interface ApiService {
 
     @DELETE("api/user/alerts/{id}")
     Call<AuthModels.MessageResponse> deleteAlert(@Path("id") long alertId);
+
+    // F-15 마이페이지: 내 정보 (로그인 필요)
+    @GET("api/user/me")
+    Call<UserProfile> getMe();
 }

@@ -93,4 +93,9 @@
     <string name="alert_check_now">지금 확인</string>
     <string name="alert_dialog_title">가격 알림 등록</string>
     <string name="alert_dialog_message">지금 %1$s원이에요. 얼마 이하가 되면 알려드릴까요?</string>
+    <string name="mypage_title">마이페이지</string>
+    <string name="mypage_login_button">로그인 · 회원가입</string>
+    <string name="recent_title">최근 본 제품</string>
+    <string name="recent_clear">전체 삭제</string>
+    <string name="recent_empty">아직 본 제품이 없어요.</string>
 </resources>

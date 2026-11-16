@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.gajeontiming.data.RecentProductDb;
 import com.example.gajeontiming.model.AiAnalysisResponse;
 import com.example.gajeontiming.model.AiAnalysisResponse.Analysis;
 import com.example.gajeontiming.model.AiAnalysisResponse.Review;
@@ -98,6 +99,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         newsState = findViewById(R.id.news_state);
 
         bindBasicInfo();
+        RecentProductDb.get(this).add(product, resolveCategory());   // F-08 최근 본 제품에 기록
 
         aiRetry.setOnClickListener(v -> loadAiAnalysis());
         loadAiAnalysis();

@@ -21,8 +21,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.gajeontiming.adapter.RecentAdapter;
 import com.example.gajeontiming.adapter.TrendAdapter;
-import com.example.gajeontiming.auth.SessionManager;
+import com.example.gajeontiming.data.RecentProductDb;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.model.TrendResponse;
@@ -30,6 +31,8 @@ import com.example.gajeontiming.network.ApiClient;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -48,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
     private Button retryButton;
     private EditText searchInput;
     private TrendAdapter adapter;
+    private TextView recentTitle;
+    private RecyclerView recentList;
+    private RecentAdapter recentAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         setupCategories();
+        setupRecent();
 
         adapter = new TrendAdapter(this::onTrendClick);
         list.setLayoutManager(new LinearLayoutManager(this));
@@ -89,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         loadTrend();
     }
 
-    // ── 오른쪽 위 메뉴: 로그인 / 로그아웃 ─────────────────────
+    // ── 오른쪽 위 메뉴: 마이페이지 / 가격 알림 ─────────────────
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -97,43 +104,48 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    /** 메뉴가 그려질 때마다 로그인 상태에 맞게 항목을 보이고 숨긴다 */
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean loggedIn = SessionManager.isLoggedIn();
-        menu.findItem(R.id.menu_login).setVisible(!loggedIn);
-        menu.findItem(R.id.menu_logout).setVisible(loggedIn);
-        MenuItem account = menu.findItem(R.id.menu_account);
-        account.setVisible(loggedIn);
-        if (loggedIn) account.setTitle(SessionManager.getName() + "님");
-        return super.onPrepareOptionsMenu(menu);
-    }
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.menu_login) {
-            startActivity(new Intent(this, LoginActivity.class));
+        if (id == R.id.menu_mypage) {
+            startActivity(new Intent(this, MyPageActivity.class));
             return true;
         }
         if (id == R.id.menu_alerts) {          // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
             startActivity(new Intent(this, AlertListActivity.class));
             return true;
         }
-        if (id == R.id.menu_logout) {
-            SessionManager.logout();
-            invalidateOptionsMenu();
-            Toast.makeText(this, "로그아웃했어요", Toast.LENGTH_SHORT).show();
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 
-    /** 로그인 화면에서 돌아오면 메뉴를 새로 그린다 */
+    /** 리포트를 보고 돌아오면 최근 본 제품을 새로 그린다 */
     @Override
     protected void onResume() {
         super.onResume();
-        invalidateOptionsMenu();
+        bindRecent();
+    }
+
+    // ── F-08 최근 본 제품 ─────────────────────────────────────
+
+    private void setupRecent() {
+        recentTitle = findViewById(R.id.home_recent_title);
+        recentList = findViewById(R.id.home_recent_list);
+        recentAdapter = new RecentAdapter(true, entry -> {
+            Intent intent = new Intent(this, ProductDetailActivity.class);
+            intent.putExtra(ProductDetailActivity.EXTRA_PRODUCT, entry.product);
+            intent.putExtra(ProductDetailActivity.EXTRA_CATEGORY, entry.category);
+            startActivity(intent);
+        });
+        recentList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        recentList.setAdapter(recentAdapter);
+    }
+
+    private void bindRecent() {
+        List<RecentProductDb.Entry> entries = RecentProductDb.get(this).list(10);
+        recentAdapter.setItems(entries);
+        int vis = entries.isEmpty() ? View.GONE : View.VISIBLE;
+        recentTitle.setVisibility(vis);
+        recentList.setVisibility(vis);
     }
 
     // ── F-03 카테고리 ─────────────────────────────────────────
