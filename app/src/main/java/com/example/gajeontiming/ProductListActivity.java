@@ -150,7 +150,7 @@ public class ProductListActivity extends AppCompatActivity {
         if (items == null || a.category != null || !ModelNameExtractor.looksLikeModel(query)) return items;
         List<Product> kept = new ArrayList<>();
         for (Product p : items) {
-            if (!AccessoryFilter.isAccessory(p.title)) kept.add(p);
+            if (!AccessoryFilter.isAccessory(p.title, p.price)) kept.add(p);
         }
         return kept;
     }

@@ -58,4 +58,13 @@ public class ModelNameExtractorTest {
         assertFalse(ModelNameExtractor.isModelLike("17KG"));        // 너무 짧고 단위
         assertFalse(ModelNameExtractor.isModelLike("1500KWH"));     // 단위가 붙은 숫자
     }
+
+    @Test
+    public void 결과가_없을_때_뒷자리를_줄여_본다() {
+        assertEquals(java.util.Arrays.asList("FQ18D7DW", "FQ18D7"),
+                ModelNameExtractor.shorterQueries("FQ18D7DWAN"));
+        assertEquals(java.util.Arrays.asList("CRP-LHTR0610", "CRP-LHTR06"),
+                ModelNameExtractor.shorterQueries("CRP-LHTR0610FW"));
+        assertTrue(ModelNameExtractor.shorterQueries("HW500").isEmpty());   // 6자 미만은 줄이지 않음
+    }
 }
