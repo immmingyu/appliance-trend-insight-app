@@ -42,6 +42,23 @@
         <!-- F-07 제품 비교 (제품 리포트에서 들어옴, 제품 목록을 고르기 모드로 열어 B를 받음) -->
         <activity android:name=".CompareActivity" />
 
+        <!-- F-16 모델명 스캔 (홈 검색창 옆 카메라 버튼, 상위 화면: 홈) -->
+        <activity
+            android:name=".ScanActivity"
+            android:parentActivityName=".MainActivity"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- 카메라 앱이 찍은 사진을 앱 캐시 폴더에 저장할 수 있게 해 주는 통로 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- F-14 AI 추천 (홈 메뉴, 상위 화면: 홈) -->
         <activity
             android:name=".RecommendActivity"

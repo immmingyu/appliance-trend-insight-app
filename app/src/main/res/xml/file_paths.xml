@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 카메라 앱이 사진을 저장할 수 있게 공개하는 폴더: 앱 캐시의 scan 폴더만 -->
+<paths>
+    <cache-path
+        name="scan"
+        path="scan/" />
+</paths>

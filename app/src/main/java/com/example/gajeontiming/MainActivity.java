@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 검색: 키보드의 검색 키 또는 돋보기 버튼
         searchButton.setOnClickListener(v -> search());
+        findViewById(R.id.home_scan_button).setOnClickListener(v ->
+                startActivity(new Intent(this, ScanActivity.class)));   // F-16 모델명 스캔
         searchInput.setOnEditorActionListener((v, actionId, event) -> {
             boolean enter = event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
                     && event.getAction() == KeyEvent.ACTION_DOWN;

@@ -116,4 +116,19 @@
     <string name="recommend_result">AI 추천 결과</string>
     <string name="recommend_result_with_term">AI 추천 결과 · “%1$s” 검색 기준</string>
     <string name="recommend_limited">지금 AI 사용량이 많아서 평점과 리뷰 수가 높은 순서로 골랐어요.</string>
+    <string name="scan_title">모델명 스캔</string>
+    <string name="scan_guide">매장 가격표나 제품 라벨에서 모델명이 보이게 찍어 주세요.\n글자 인식은 휴대폰 안에서만 하고, 사진은 서버로 보내지 않아요.</string>
+    <string name="scan_photo_desc">찍은 가격표 사진</string>
+    <string name="scan_camera">카메라로 찍기</string>
+    <string name="scan_gallery">사진에서 고르기</string>
+    <string name="scan_reading">글자를 읽는 중…</string>
+    <string name="scan_read_failed">사진을 읽지 못했어요. 다시 찍어 주세요.</string>
+    <string name="scan_no_text">글자를 찾지 못했어요. 모델명이 크고 선명하게 보이게 다시 찍어 주세요.</string>
+    <string name="scan_no_model">모델명처럼 보이는 글자를 찾지 못했어요. 아래에 직접 입력해 주세요.</string>
+    <string name="scan_found">모델명 후보를 찾았어요. 맞는 것을 누르거나 직접 고쳐 주세요.</string>
+    <string name="scan_found_with_category">%1$s 모델명 후보를 찾았어요. 맞는 것을 누르거나 직접 고쳐 주세요.</string>
+    <string name="scan_query_label">검색할 모델명</string>
+    <string name="scan_query_hint">예: AF17B6474TZS</string>
+    <string name="scan_search">이 모델명으로 검색</string>
+    <string name="scan_open">모델명 스캔</string>
 </resources>
