@@ -95,6 +95,23 @@
                 android:layout_marginTop="12dp"
                 android:text="@string/retry"
                 android:visibility="gone" />
+
+            <!-- 본품을 못 찾았을 때: 다음 검색어 제안 · 다나와에서 직접 보기 -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/product_suggest_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/product_danawa"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/open_danawa"
+                android:visibility="gone" />
         </LinearLayout>
     </FrameLayout>
 </LinearLayout>

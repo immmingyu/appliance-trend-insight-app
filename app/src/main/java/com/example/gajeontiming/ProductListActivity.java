@@ -1,6 +1,9 @@
 package com.example.gajeontiming;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.net.Uri;
+import android.view.LayoutInflater;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +23,8 @@ import com.example.gajeontiming.model.ProductListResponse;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.scan.AccessoryFilter;
 import com.example.gajeontiming.scan.ModelNameExtractor;
+import com.example.gajeontiming.scan.SearchSuggester;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.ChipGroup;
 
@@ -60,6 +65,9 @@ public class ProductListActivity extends AppCompatActivity {
     private final List<Attempt> attempts = new ArrayList<>();
     private int attemptIndex = 0;
     private TextView fallbackNotice;
+    private ChipGroup suggestGroup;          // 본품을 못 찾았을 때 다음 검색어 제안
+    private Button danawaButton;             // 다나와에서 직접 보기
+    private final List<String> removedTitles = new ArrayList<>();   // 소모품으로 걸러낸 제목들
     private boolean pickMode;
     private String sort = "sim";      // sim | asc | dsc
     private int page = 1;
@@ -95,6 +103,9 @@ public class ProductListActivity extends AppCompatActivity {
         stateText = findViewById(R.id.product_state_text);
         retryButton = findViewById(R.id.product_retry);
         fallbackNotice = findViewById(R.id.product_fallback_notice);
+        suggestGroup = findViewById(R.id.product_suggest_group);
+        danawaButton = findViewById(R.id.product_danawa);
+        danawaButton.setOnClickListener(v -> openDanawa());
 
         adapter = new ProductAdapter(this::onProductClick);
         LinearLayoutManager lm = new LinearLayoutManager(this);
@@ -150,7 +161,11 @@ public class ProductListActivity extends AppCompatActivity {
         if (items == null || a.category != null || !ModelNameExtractor.looksLikeModel(query)) return items;
         List<Product> kept = new ArrayList<>();
         for (Product p : items) {
-            if (!AccessoryFilter.isAccessory(p.title, p.price)) kept.add(p);
+            if (AccessoryFilter.isAccessory(p.title, p.price)) {
+                removedTitles.add(p.title);    // 버린 제목은 "다음 검색어 제안"의 힌트로 쓴다
+            } else {
+                kept.add(p);
+            }
         }
         return kept;
     }
@@ -165,7 +180,10 @@ public class ProductListActivity extends AppCompatActivity {
         adapter.clear();
         hasMore = true;
         attemptIndex = 0;
+        removedTitles.clear();
         fallbackNotice.setVisibility(View.GONE);
+        suggestGroup.setVisibility(View.GONE);
+        danawaButton.setVisibility(View.GONE);
         loadPage(1);
     }
 
@@ -276,7 +294,51 @@ public class ProductListActivity extends AppCompatActivity {
         list.setVisibility(View.GONE);
         retryButton.setVisibility(View.GONE);
         stateText.setVisibility(View.VISIBLE);
-        stateText.setText("'" + query + "' 검색 결과가 없어요.\n모델명이나 품목 이름으로 다시 검색해 보세요.");
+
+        boolean isModel = ModelNameExtractor.looksLikeModel(query);
+        if (isModel && !removedTitles.isEmpty()) {
+            stateText.setText(getString(R.string.empty_only_accessories, query));
+        } else {
+            stateText.setText(getString(R.string.empty_default, query));
+        }
+
+        // 다음 검색어 제안: 걸러낸 소모품 제목에서 브랜드 · 품목을 뽑아 만든다
+        suggestGroup.removeAllViews();
+        List<String> suggestions = isModel
+                ? SearchSuggester.suggest(query, category, removedTitles)
+                : new ArrayList<>();
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (String sgt : suggestions) {
+            Chip chip = (Chip) inflater.inflate(R.layout.item_filter_chip, suggestGroup, false);
+            chip.setText(sgt);
+            chip.setCheckable(false);
+            chip.setOnClickListener(v -> searchAgain(sgt));
+            suggestGroup.addView(chip);
+        }
+        suggestGroup.setVisibility(suggestions.isEmpty() ? View.GONE : View.VISIBLE);
+        danawaButton.setVisibility(isModel ? View.VISIBLE : View.GONE);
+    }
+
+    /** 제안 칩을 누르면 그 검색어로 이 화면에서 다시 검색한다 */
+    private void searchAgain(String newQuery) {
+        query = newQuery;
+        String detected = com.example.gajeontiming.model.Categories.detect(newQuery);
+        if (detected != null) category = detected;
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(pickMode ? getString(R.string.pick_title, query) : query);
+        }
+        buildAttempts();
+        restart();
+    }
+
+    /** 앱이 못 찾는 제품을 사용자가 직접 확인할 수 있게 다나와 검색 결과를 브라우저로 연다 */
+    private void openDanawa() {
+        try {
+            Uri uri = Uri.parse("https://search.danawa.com/dsearch.php?query=" + Uri.encode(query));
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "링크를 열 수 있는 앱이 없어요", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showError(String text) {
