@@ -42,6 +42,12 @@
         <!-- F-07 제품 비교 (제품 리포트에서 들어옴, 제품 목록을 고르기 모드로 열어 B를 받음) -->
         <activity android:name=".CompareActivity" />
 
+        <!-- F-14 AI 추천 (홈 메뉴, 상위 화면: 홈) -->
+        <activity
+            android:name=".RecommendActivity"
+            android:parentActivityName=".MainActivity"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- F-15 마이페이지 (홈 메뉴, 상위 화면: 홈) -->
         <activity
             android:name=".MyPageActivity"

@@ -98,4 +98,22 @@
     <string name="recent_title">최근 본 제품</string>
     <string name="recent_clear">전체 삭제</string>
     <string name="recent_empty">아직 본 제품이 없어요.</string>
+    <string name="recommend_title">AI 추천</string>
+    <string name="recommend_step_category">① 어떤 제품을 찾으세요?</string>
+    <string name="recommend_step_budget">② 예산 (선택)</string>
+    <string name="recommend_budget_hint">예: 50</string>
+    <string name="recommend_budget_unit">만원 이하</string>
+    <string name="recommend_step_condition">③ 사용 환경 · 원하는 점 (여러 개 선택 가능)</string>
+    <string name="recommend_step_extra">④ 추가 조건 (선택)</string>
+    <string name="recommend_extra_hint">예: 6평 방, 반려동물 있음</string>
+    <string name="recommend_preview_empty">품목을 먼저 골라 주세요.</string>
+    <string name="recommend_preview">AI에게 이렇게 물어볼게요: “%1$s”</string>
+    <string name="recommend_submit">AI에게 추천받기</string>
+    <string name="recommend_loading">AI가 조건에 맞는 제품을 고르는 중이에요.\n20초 정도 걸려요.</string>
+    <string name="recommend_failed">추천을 받지 못했어요. 잠시 후 다시 시도해 주세요.</string>
+    <string name="recommend_network">인터넷 연결을 확인해 주세요.</string>
+    <string name="recommend_empty">조건에 맞는 제품을 찾지 못했어요. 조건을 줄여 보세요.</string>
+    <string name="recommend_result">AI 추천 결과</string>
+    <string name="recommend_result_with_term">AI 추천 결과 · “%1$s” 검색 기준</string>
+    <string name="recommend_limited">지금 AI 사용량이 많아서 평점과 리뷰 수가 높은 순서로 골랐어요.</string>
 </resources>

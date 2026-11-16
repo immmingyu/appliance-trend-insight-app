@@ -8,6 +8,7 @@ import com.example.gajeontiming.model.BestPriceResponse;
 import com.example.gajeontiming.model.HealthResponse;
 import com.example.gajeontiming.model.PricePositionResponse;
 import com.example.gajeontiming.model.ProductListResponse;
+import com.example.gajeontiming.model.RecommendResponse;
 import com.example.gajeontiming.model.ReportResponse;
 import com.example.gajeontiming.model.TimingResponse;
 import com.example.gajeontiming.model.UserProfile;
@@ -108,4 +109,9 @@ public interface ApiService {
     // F-15 마이페이지: 내 정보 (로그인 필요)
     @GET("api/user/me")
     Call<UserProfile> getMe();
+
+    // F-14 AI 추천: "에어컨 1인 자취 30만원 이하" 같은 문장 하나를 보낸다
+    // (예산은 반드시 "숫자+만원" 형식이어야 서버가 알아듣는다)
+    @GET("api/recommend")
+    Call<RecommendResponse> recommend(@Query("query") String sentence);
 }

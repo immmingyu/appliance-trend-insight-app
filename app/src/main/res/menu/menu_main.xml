@@ -4,6 +4,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menu_recommend"
+        android:title="@string/recommend_title"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/menu_mypage"
         android:title="@string/mypage_title"
         app:showAsAction="ifRoom" />

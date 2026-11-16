@@ -107,6 +107,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
+        if (id == R.id.menu_recommend) {
+            startActivity(new Intent(this, RecommendActivity.class));
+            return true;
+        }
         if (id == R.id.menu_mypage) {
             startActivity(new Intent(this, MyPageActivity.class));
             return true;
