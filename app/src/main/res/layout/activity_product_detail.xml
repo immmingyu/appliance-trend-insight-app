@@ -198,6 +198,14 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <Button
+                android:id="@+id/detail_ask_ai"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/detail_ask_ai" />
+
             <!-- ④ 실사용 후기 -->
             <TextView
                 style="@style/DetailSectionTitle"

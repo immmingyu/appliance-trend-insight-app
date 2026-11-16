@@ -59,6 +59,11 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- F-17 AI 상담 (홈 메뉴 또는 제품 리포트, 키보드가 올라오면 입력창도 같이 올라오게) -->
+        <activity
+            android:name=".ChatActivity"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- F-14 AI 추천 (홈 메뉴, 상위 화면: 홈) -->
         <activity
             android:name=".RecommendActivity"

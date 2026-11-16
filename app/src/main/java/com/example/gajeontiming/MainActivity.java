@@ -113,6 +113,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, RecommendActivity.class));
             return true;
         }
+        if (id == R.id.menu_chat) {
+            startActivity(new Intent(this, ChatActivity.class));
+            return true;
+        }
         if (id == R.id.menu_mypage) {
             startActivity(new Intent(this, MyPageActivity.class));
             return true;

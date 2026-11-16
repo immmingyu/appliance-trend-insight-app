@@ -9,6 +9,11 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_chat"
+        android:title="@string/chat_title"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_mypage"
         android:title="@string/mypage_title"
         app:showAsAction="ifRoom" />

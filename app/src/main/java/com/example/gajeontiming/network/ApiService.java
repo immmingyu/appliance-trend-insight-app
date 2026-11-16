@@ -6,6 +6,7 @@ import com.example.gajeontiming.model.AlertModels;
 import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.model.BestPriceResponse;
 import com.example.gajeontiming.model.HealthResponse;
+import com.example.gajeontiming.model.InsightModels;
 import com.example.gajeontiming.model.PricePositionResponse;
 import com.example.gajeontiming.model.ProductListResponse;
 import com.example.gajeontiming.model.RecommendResponse;
@@ -114,4 +115,8 @@ public interface ApiService {
     // (예산은 반드시 "숫자+만원" 형식이어야 서버가 알아듣는다)
     @GET("api/recommend")
     Call<RecommendResponse> recommend(@Query("query") String sentence);
+
+    // F-17 AI 상담: 질문 + 직전 대화 4개 + 직전 조건 → 마크다운 답변 (로그인 불필요, 20~40초)
+    @POST("api/insights/analyze")
+    Call<InsightModels.Response> askInsight(@Body InsightModels.Request body);
 }

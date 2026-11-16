@@ -139,6 +139,23 @@ public class ProductDetailActivity extends AppCompatActivity {
         // 다음 단계에서 연결할 화면들
         findViewById(R.id.detail_timing_button).setOnClickListener(v -> openTiming());
         findViewById(R.id.detail_compare_button).setOnClickListener(v -> openCompare());
+        // F-17 이 제품에 대한 질문을 입력창에 미리 넣어서 AI 상담을 연다
+        findViewById(R.id.detail_ask_ai).setOnClickListener(v -> {
+            Intent intent = new Intent(this, ChatActivity.class);
+            intent.putExtra(ChatActivity.EXTRA_QUESTION, shortName(product.title) + " 실제로 써보면 어때?");
+            startActivity(intent);
+        });
+    }
+
+    /** 질문에 넣기 좋게 제품명을 줄인다 (앞 6단어까지) */
+    private String shortName(String title) {
+        String[] words = title.trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < Math.min(6, words.length); i++) {
+            if (i > 0) sb.append(" ");
+            sb.append(words[i]);
+        }
+        return sb.toString();
     }
 
     /** 품목 이름: 목록에서 넘겨받은 값 → 트렌드의 품목 → 제품명에서 찾기 순서로 정한다 */

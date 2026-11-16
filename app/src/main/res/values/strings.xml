@@ -136,4 +136,16 @@
     <string name="empty_default">‘%1$s’ 검색 결과가 없어요.\n모델명이나 품목 이름으로 다시 검색해 보세요.</string>
     <string name="empty_only_accessories">‘%1$s’ 본품은 찾지 못했어요.\n이 모델에 맞는 소모품만 검색돼서 걸러냈어요.\n아래 검색어로 다시 찾아보세요.</string>
     <string name="open_danawa">다나와에서 직접 찾아보기</string>
+    <string name="chat_title">AI 상담</string>
+    <string name="chat_empty_title">무엇이든 물어보세요</string>
+    <string name="chat_empty_desc">실사용 후기와 판매 중인 제품 정보를 찾아서 답해 드려요.\n“그럼 소음은?”처럼 이어서 물어봐도 돼요.</string>
+    <string name="chat_hint">가전 구매에 대해 물어보세요</string>
+    <string name="chat_send">보내기</string>
+    <string name="chat_typing">AI가 후기와 제품 정보를 찾아 답변을 쓰는 중이에요…</string>
+    <string name="chat_failed">답변을 받지 못했어요. 잠시 후 다시 물어봐 주세요.</string>
+    <string name="chat_network">인터넷 연결을 확인해 주세요.</string>
+    <string name="chat_sources">참고 자료 %1$d개 보기</string>
+    <string name="chat_sources_title">AI가 참고한 자료</string>
+    <string name="chat_new">새 대화</string>
+    <string name="detail_ask_ai">이 제품에 대해 AI에게 더 물어보기</string>
 </resources>
