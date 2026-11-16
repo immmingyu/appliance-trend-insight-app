@@ -76,6 +76,26 @@ public final class ModelNameExtractor {
         return t;
     }
 
+    /** 다른 화면에서 쓰는 이름 (검색어가 모델명처럼 생겼는지) */
+    public static boolean looksLikeModel(String text) {
+        return text != null && isModelLike(normalize(text));
+    }
+
+    /**
+     * 검색 결과가 없을 때 넓혀 볼 검색어들. 국내 가전 모델명은 뒤쪽 글자가
+     * 색상 · 판매처 · 설치 구성을 뜻하는 경우가 많아서, 뒤에서 2글자씩 줄여 본다 (최소 6자).
+     * 예: FQ18D7DWAN → [FQ18D7DW, FQ18D7]
+     */
+    public static java.util.List<String> shorterQueries(String model) {
+        java.util.List<String> result = new ArrayList<>();
+        String t = normalize(model);
+        for (int len = t.length() - 2; len >= 6 && result.size() < 2; len -= 2) {
+            String cut = t.substring(0, len).replaceAll("[\\-_/.]+$", "");
+            if (cut.length() >= 6 && !result.contains(cut)) result.add(cut);
+        }
+        return result;
+    }
+
     static boolean isModelLike(String t) {
         if (!ALLOWED.matcher(t).matches()) return false;
         if (!HAS_LETTER.matcher(t).find() || !HAS_DIGIT.matcher(t).find()) return false;

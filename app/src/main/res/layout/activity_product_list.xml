@@ -43,6 +43,19 @@
             android:text="@string/sort_high" />
     </com.google.android.material.chip.ChipGroup>
 
+    <!-- 원래 검색어로 못 찾아 넓혀서 찾았을 때 안내 -->
+    <TextView
+        android:id="@+id/product_fallback_notice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="4dp"
+        android:background="#FFF4E5"
+        android:padding="10dp"
+        android:textColor="#8A4B00"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

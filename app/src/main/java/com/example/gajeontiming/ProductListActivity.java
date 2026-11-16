@@ -18,9 +18,11 @@ import com.example.gajeontiming.adapter.ProductAdapter;
 import com.example.gajeontiming.model.Product;
 import com.example.gajeontiming.model.ProductListResponse;
 import com.example.gajeontiming.network.ApiClient;
+import com.example.gajeontiming.scan.ModelNameExtractor;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.ChipGroup;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -41,8 +43,21 @@ public class ProductListActivity extends AppCompatActivity {
 
     private static final int PAGE_SIZE = 15;
 
-    private String query;
+    private String query;             // 사용자가 처음 검색한 말
     private String category;          // null이면 품목 필터 없이 검색
+
+    /**
+     * 결과가 0건일 때 차례로 넓혀 볼 검색 방법들.
+     * [0] 원래 검색어 + 품목 → [1] 원래 검색어만 → [2..] 모델명 뒷부분을 줄인 검색어
+     */
+    private static class Attempt {
+        final String query;
+        final String category;
+        Attempt(String query, String category) { this.query = query; this.category = category; }
+    }
+    private final List<Attempt> attempts = new ArrayList<>();
+    private int attemptIndex = 0;
+    private TextView fallbackNotice;
     private boolean pickMode;
     private String sort = "sim";      // sim | asc | dsc
     private int page = 1;
@@ -64,6 +79,7 @@ public class ProductListActivity extends AppCompatActivity {
         query = getIntent().getStringExtra(EXTRA_QUERY);
         category = getIntent().getStringExtra(EXTRA_CATEGORY);
         pickMode = getIntent().getBooleanExtra(EXTRA_PICK_MODE, false);
+        buildAttempts();
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -76,6 +92,7 @@ public class ProductListActivity extends AppCompatActivity {
         progress = findViewById(R.id.product_progress);
         stateText = findViewById(R.id.product_state_text);
         retryButton = findViewById(R.id.product_retry);
+        fallbackNotice = findViewById(R.id.product_fallback_notice);
 
         adapter = new ProductAdapter(this::onProductClick);
         LinearLayoutManager lm = new LinearLayoutManager(this);
@@ -109,11 +126,29 @@ public class ProductListActivity extends AppCompatActivity {
         restart();
     }
 
-    /** 정렬이 바뀌면 처음부터 다시 검색 */
+    private void buildAttempts() {
+        attempts.clear();
+        attempts.add(new Attempt(query, category));
+        if (category != null) attempts.add(new Attempt(query, null));
+        // 검색어가 모델명처럼 생겼으면 뒷부분을 줄인 검색어도 준비 (품목은 다시 붙여 소모품을 거른다)
+        if (ModelNameExtractor.looksLikeModel(query)) {
+            for (String shorter : ModelNameExtractor.shorterQueries(query)) {
+                attempts.add(new Attempt(shorter, category));
+            }
+        }
+    }
+
+    private Attempt current() {
+        return attempts.get(attemptIndex);
+    }
+
+    /** 정렬이 바뀌면 처음부터 다시 검색 (넓혀 보던 단계도 처음으로) */
     private void restart() {
         if (currentCall != null) currentCall.cancel();
         adapter.clear();
         hasMore = true;
+        attemptIndex = 0;
+        fallbackNotice.setVisibility(View.GONE);
         loadPage(1);
     }
 
@@ -121,7 +156,8 @@ public class ProductListActivity extends AppCompatActivity {
         loading = true;
         showLoading(target == 1);
 
-        currentCall = ApiClient.get().searchProducts(query, target, PAGE_SIZE, sort, category);
+        Attempt a = current();
+        currentCall = ApiClient.get().searchProducts(a.query, target, PAGE_SIZE, sort, a.category);
         currentCall.enqueue(new Callback<ProductListResponse>() {
             @Override
             public void onResponse(@NonNull Call<ProductListResponse> call,
@@ -142,8 +178,15 @@ public class ProductListActivity extends AppCompatActivity {
                 if (items != null) adapter.addItems(items);
 
                 if (adapter.getProductCount() == 0) {
+                    // 첫 페이지가 0건이면 다음 방법으로 넓혀서 다시 찾는다
+                    if (target == 1 && attemptIndex < attempts.size() - 1) {
+                        attemptIndex++;
+                        loadPage(1);
+                        return;
+                    }
                     showEmpty();
                 } else {
+                    showFallbackNoticeIfNeeded();
                     showList();
                 }
             }
@@ -158,6 +201,19 @@ public class ProductListActivity extends AppCompatActivity {
     }
 
     /** 제품을 누르면 그 제품 정보를 통째로 넘기며 리포트 화면을 연다 (고르기 모드면 돌려준다) */
+    /** 원래 검색어로 못 찾고 넓혀서 찾았으면, 무엇으로 찾은 결과인지 알려준다 */
+    private void showFallbackNoticeIfNeeded() {
+        if (attemptIndex == 0) {
+            fallbackNotice.setVisibility(View.GONE);
+            return;
+        }
+        Attempt a = current();
+        fallbackNotice.setText(a.query.equals(query)
+                ? getString(R.string.fallback_no_category, query)
+                : getString(R.string.fallback_shorter, query, a.query));
+        fallbackNotice.setVisibility(View.VISIBLE);
+    }
+
     private void onProductClick(Product product) {
         if (pickMode) {
             Intent result = new Intent();

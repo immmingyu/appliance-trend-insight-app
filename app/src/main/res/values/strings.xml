@@ -131,4 +131,6 @@
     <string name="scan_query_hint">예: AF17B6474TZS</string>
     <string name="scan_search">이 모델명으로 검색</string>
     <string name="scan_open">모델명 스캔</string>
+    <string name="fallback_no_category">‘%1$s’ 품목 필터로는 결과가 없어 필터 없이 찾은 결과예요.</string>
+    <string name="fallback_shorter">‘%1$s’로는 결과가 없어 ‘%2$s’로 찾은 결과예요. 모델명 뒷자리(색상 · 구성)가 다를 수 있어요.</string>
 </resources>
