@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 서버 API 호출에 필요 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- F-12 가격 알림 (안드로이드 13부터 사용자 허용 필요) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".GajeonApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.GajeonTiming">
+
+        <!-- 앱을 켜면 처음 뜨는 화면: 서버를 깨운 뒤 홈으로 이동 -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".MainActivity" />
+
+        <!-- F-04 제품 목록 (상위 화면: 홈) -->
+        <activity
+            android:name=".ProductListActivity"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- F-05 제품 리포트 (제품 목록 또는 홈의 트렌드에서 들어옴) -->
+        <activity android:name=".ProductDetailActivity" />
+
+        <!-- F-06 구매 타이밍 (제품 리포트에서 들어옴) -->
+        <activity android:name=".TimingActivity" />
+
+        <!-- F-07 제품 비교 (제품 리포트에서 들어옴, 제품 목록을 고르기 모드로 열어 B를 받음) -->
+        <activity android:name=".CompareActivity" />
+
+        <!-- F-10 로그인 · F-09 회원가입 (홈 메뉴, 또는 로그인이 필요한 기능에서 들어옴) -->
+        <activity android:name=".LoginActivity" />
+        <activity
+            android:name=".SignUpActivity"
+            android:parentActivityName=".LoginActivity" />
+
+        <!-- F-11 가격 알림 목록 (홈 메뉴 또는 휴대폰 알림을 눌러 들어옴) -->
+        <activity android:name=".AlertListActivity" />
+
+    </application>
+</manifest>

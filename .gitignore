@@ -1,0 +1,23 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# 팀원마다 달라서 충돌만 나는 Android Studio 설정
+/.idea/
+# 서명 키 · 설치 파일
+*.jks
+*.keystore
+*.apk
+*.aab

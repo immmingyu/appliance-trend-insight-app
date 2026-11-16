@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F-09 회원가입: ① 이메일 → ② 인증번호 → ③ 비밀번호 · 닉네임 (앞 단계를 마치면 다음 칸이 열림) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- ① 이메일 -->
+            <TextView
+                style="@style/DetailLabel"
+                android:layout_marginTop="0dp"
+                android:text="@string/signup_step_email" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/signup_email"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:autofillHints="emailAddress"
+                    android:hint="@string/hint_email"
+                    android:inputType="textEmailAddress"
+                    android:minHeight="48dp" />
+
+                <Button
+                    android:id="@+id/signup_send_code"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/signup_send" />
+            </LinearLayout>
+
+            <!-- ② 인증번호 -->
+            <LinearLayout
+                android:id="@+id/signup_code_step"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/DetailLabel"
+                    android:text="@string/signup_step_code" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/signup_code"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:autofillHints="smsOTPCode"
+                        android:hint="@string/hint_code"
+                        android:inputType="number"
+                        android:maxLength="6"
+                        android:minHeight="48dp" />
+
+                    <TextView
+                        android:id="@+id/signup_code_timer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="8dp"
+                        android:textColor="@color/score_red" />
+
+                    <Button
+                        android:id="@+id/signup_verify"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/signup_verify" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ③ 계정 정보 -->
+            <LinearLayout
+                android:id="@+id/signup_account_step"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/DetailLabel"
+                    android:text="@string/signup_step_account" />
+
+                <EditText
+                    android:id="@+id/signup_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autofillHints="newPassword"
+                    android:hint="@string/hint_new_password"
+                    android:inputType="textPassword"
+                    android:minHeight="48dp" />
+
+                <EditText
+                    android:id="@+id/signup_password_confirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:autofillHints="newPassword"
+                    android:hint="@string/hint_password_confirm"
+                    android:inputType="textPassword"
+                    android:minHeight="48dp" />
+
+                <EditText
+                    android:id="@+id/signup_nickname"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:autofillHints="username"
+                    android:hint="@string/hint_nickname"
+                    android:inputType="text"
+                    android:maxLength="20"
+                    android:minHeight="48dp" />
+
+                <Button
+                    android:id="@+id/signup_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/signup_submit" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/signup_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="@color/score_red"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/signup_progress"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

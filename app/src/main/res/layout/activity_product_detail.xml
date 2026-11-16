@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- F-05 제품 리포트: 기본 정보 → 이동 버튼 → AI 분석 → 실사용 후기 → 관련 뉴스 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- ① 기본 정보 -->
+            <ImageView
+                android:id="@+id/detail_image"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:contentDescription="@null"
+                android:scaleType="centerInside" />
+
+            <TextView
+                android:id="@+id/detail_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textSize="17sp" />
+
+            <TextView
+                android:id="@+id/detail_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/detail_meta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/detail_shop_button"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/detail_shop" />
+
+            <!-- ② 다음 화면으로 이동 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/detail_timing_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/detail_timing" />
+
+                <Button
+                    android:id="@+id/detail_compare_button"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/detail_compare" />
+            </LinearLayout>
+
+            <!-- ③ AI 분석 -->
+            <TextView
+                style="@style/DetailSectionTitle"
+                android:text="@string/detail_ai_title" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- 로딩 · 오류 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ProgressBar
+                            android:id="@+id/ai_progress"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp" />
+
+                        <TextView
+                            android:id="@+id/ai_state"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center" />
+
+                        <Button
+                            android:id="@+id/ai_retry"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/retry"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <!-- 분석 결과 -->
+                    <LinearLayout
+                        android:id="@+id/ai_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/ai_score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/ai_summary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:id="@+id/ai_warning"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="#FFF4E5"
+                            android:padding="10dp"
+                            android:textColor="#8A4B00"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/ai_pros_label"
+                            style="@style/DetailLabel"
+                            android:text="@string/detail_pros" />
+
+                        <TextView
+                            android:id="@+id/ai_pros"
+                            style="@style/DetailBody" />
+
+                        <TextView
+                            android:id="@+id/ai_cons_label"
+                            style="@style/DetailLabel"
+                            android:text="@string/detail_cons" />
+
+                        <TextView
+                            android:id="@+id/ai_cons"
+                            style="@style/DetailBody" />
+
+                        <TextView
+                            android:id="@+id/ai_cautions_label"
+                            style="@style/DetailLabel"
+                            android:text="@string/detail_cautions" />
+
+                        <TextView
+                            android:id="@+id/ai_cautions"
+                            style="@style/DetailBody" />
+
+                        <TextView
+                            android:id="@+id/ai_suitable_label"
+                            style="@style/DetailLabel"
+                            android:text="@string/detail_suitable" />
+
+                        <TextView
+                            android:id="@+id/ai_suitable"
+                            style="@style/DetailBody" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ④ 실사용 후기 -->
+            <TextView
+                style="@style/DetailSectionTitle"
+                android:text="@string/detail_review_title" />
+
+            <TextView
+                android:id="@+id/review_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:id="@+id/review_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- ⑤ 관련 뉴스 -->
+            <TextView
+                style="@style/DetailSectionTitle"
+                android:text="@string/detail_news_title" />
+
+            <TextView
+                android:id="@+id/news_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:id="@+id/news_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

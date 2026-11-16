@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 구매 판단 색: 최고 · 좋음 · 보통 · 대기 -->
+    <color name="score_green">#2E7D32</color>
+    <color name="score_blue">#1565C0</color>
+    <color name="score_yellow">#B26A00</color>
+    <color name="score_red">#C62828</color>
+    <!-- 그래프 -->
+    <color name="timing_line">#1E88E5</color>
+    <color name="timing_chart_text">#757575</color>
+</resources>

@@ -1,0 +1,236 @@
+package com.example.gajeontiming;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.gajeontiming.adapter.ProductAdapter;
+import com.example.gajeontiming.model.Product;
+import com.example.gajeontiming.model.ProductListResponse;
+import com.example.gajeontiming.network.ApiClient;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.chip.ChipGroup;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+/**
+ * F-04 제품 목록 화면.
+ * 홈에서 검색어(필수)와 품목(선택)을 인텐트로 받아 검색하고, 정렬 · 더 보기를 지원한다.
+ */
+public class ProductListActivity extends AppCompatActivity {
+
+    public static final String EXTRA_QUERY = "query";
+    public static final String EXTRA_CATEGORY = "category";
+    /** true면 "고르기 모드": 제품을 누르면 리포트 대신 그 제품을 부른 화면에 돌려준다 (비교용) */
+    public static final String EXTRA_PICK_MODE = "pick_mode";
+    public static final String RESULT_PRODUCT = "picked_product";
+
+    private static final int PAGE_SIZE = 15;
+
+    private String query;
+    private String category;          // null이면 품목 필터 없이 검색
+    private boolean pickMode;
+    private String sort = "sim";      // sim | asc | dsc
+    private int page = 1;
+    private boolean loading = false;
+    private boolean hasMore = true;
+    private Call<ProductListResponse> currentCall;
+
+    private RecyclerView list;
+    private ProgressBar progress;
+    private TextView stateText;
+    private Button retryButton;
+    private ProductAdapter adapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_product_list);
+
+        query = getIntent().getStringExtra(EXTRA_QUERY);
+        category = getIntent().getStringExtra(EXTRA_CATEGORY);
+        pickMode = getIntent().getBooleanExtra(EXTRA_PICK_MODE, false);
+
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(pickMode ? getString(R.string.pick_title, query) : query);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);   // 왼쪽 위 뒤로 가기 화살표
+        }
+
+        list = findViewById(R.id.product_list);
+        progress = findViewById(R.id.product_progress);
+        stateText = findViewById(R.id.product_state_text);
+        retryButton = findViewById(R.id.product_retry);
+
+        adapter = new ProductAdapter(this::onProductClick);
+        LinearLayoutManager lm = new LinearLayoutManager(this);
+        list.setLayoutManager(lm);
+        list.setAdapter(adapter);
+
+        // 끝에서 3개 전까지 내려오면 다음 페이지를 불러온다 (더 보기)
+        list.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
+                if (dy <= 0 || loading || !hasMore) return;
+                if (lm.findLastVisibleItemPosition() >= adapter.getProductCount() - 3) {
+                    loadPage(page + 1);
+                }
+            }
+        });
+
+        ChipGroup sortGroup = findViewById(R.id.product_sort_group);
+        sortGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) return;
+            int id = checkedIds.get(0);
+            String newSort = id == R.id.sort_low ? "asc" : id == R.id.sort_high ? "dsc" : "sim";
+            if (!newSort.equals(sort)) {
+                sort = newSort;
+                restart();
+            }
+        });
+
+        retryButton.setOnClickListener(v -> loadPage(1));
+
+        restart();
+    }
+
+    /** 정렬이 바뀌면 처음부터 다시 검색 */
+    private void restart() {
+        if (currentCall != null) currentCall.cancel();
+        adapter.clear();
+        hasMore = true;
+        loadPage(1);
+    }
+
+    private void loadPage(int target) {
+        loading = true;
+        showLoading(target == 1);
+
+        currentCall = ApiClient.get().searchProducts(query, target, PAGE_SIZE, sort, category);
+        currentCall.enqueue(new Callback<ProductListResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<ProductListResponse> call,
+                                   @NonNull Response<ProductListResponse> response) {
+                loading = false;
+                ProductListResponse body = response.body();
+                if (!response.isSuccessful() || body == null) {
+                    showError(response.code() == 429
+                            ? "요청이 많아요. 잠시 후 다시 시도해 주세요."
+                            : "검색 결과를 불러오지 못했어요.");
+                    return;
+                }
+                List<Product> items = body.items;
+                page = target;
+                // 한 페이지를 꽉 채워 오지 않았으면 마지막 페이지로 본다
+                hasMore = items != null && items.size() >= PAGE_SIZE;
+
+                if (items != null) adapter.addItems(items);
+
+                if (adapter.getProductCount() == 0) {
+                    showEmpty();
+                } else {
+                    showList();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ProductListResponse> call, @NonNull Throwable t) {
+                if (call.isCanceled()) return;   // 정렬을 바꿔서 취소한 요청은 무시
+                loading = false;
+                showError("인터넷 연결을 확인해 주세요.");
+            }
+        });
+    }
+
+    /** 제품을 누르면 그 제품 정보를 통째로 넘기며 리포트 화면을 연다 (고르기 모드면 돌려준다) */
+    private void onProductClick(Product product) {
+        if (pickMode) {
+            Intent result = new Intent();
+            result.putExtra(RESULT_PRODUCT, product);
+            setResult(RESULT_OK, result);
+            finish();
+            return;
+        }
+        Intent intent = new Intent(this, ProductDetailActivity.class);
+        intent.putExtra(ProductDetailActivity.EXTRA_PRODUCT, product);
+        // 칩이나 검색어로 품목을 알고 있으면 같이 넘긴다 (제품명에 품목 이름이 없는 경우 대비)
+        intent.putExtra(ProductDetailActivity.EXTRA_CATEGORY, category);
+        startActivity(intent);
+    }
+
+    // ── 화면 상태 ─────────────────────────────────────────────
+
+    /** 첫 페이지면 가운데에 크게, 더 보기면 목록 아래 작은 표시 */
+    private void showLoading(boolean firstPage) {
+        retryButton.setVisibility(View.GONE);
+        if (firstPage) {
+            list.setVisibility(View.GONE);
+            progress.setVisibility(View.VISIBLE);
+            stateText.setVisibility(View.VISIBLE);
+            stateText.setText("검색하는 중…");
+        } else {
+            // 스크롤 도중에는 목록을 바로 바꿀 수 없어서 다음 순서로 미룬다
+            list.post(() -> { if (loading) adapter.setLoadingFooter(true); });
+        }
+    }
+
+    private void showList() {
+        adapter.setLoadingFooter(false);
+        progress.setVisibility(View.GONE);
+        stateText.setVisibility(View.GONE);
+        retryButton.setVisibility(View.GONE);
+        list.setVisibility(View.VISIBLE);
+    }
+
+    private void showEmpty() {
+        progress.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+        retryButton.setVisibility(View.GONE);
+        stateText.setVisibility(View.VISIBLE);
+        stateText.setText("'" + query + "' 검색 결과가 없어요.\n모델명이나 품목 이름으로 다시 검색해 보세요.");
+    }
+
+    private void showError(String text) {
+        adapter.setLoadingFooter(false);
+        if (adapter.getProductCount() > 0) {
+            // 더 보기 중 실패: 이미 본 목록은 그대로 두고 안내만. 다시 스크롤하면 재시도된다
+            Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        progress.setVisibility(View.GONE);
+        list.setVisibility(View.GONE);
+        stateText.setVisibility(View.VISIBLE);
+        stateText.setText(text);
+        retryButton.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {   // 왼쪽 위 화살표 → 홈으로
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (currentCall != null) currentCall.cancel();
+        super.onDestroy();
+    }
+}

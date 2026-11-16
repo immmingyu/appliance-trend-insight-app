@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 홈 화면 오른쪽 위 메뉴. 로그인 상태에 따라 보이는 항목이 바뀐다 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_login"
+        android:title="@string/login_title"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_alerts"
+        android:title="@string/alert_title"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_account"
+        android:enabled="false"
+        android:title=""
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_logout"
+        android:title="@string/logout"
+        app:showAsAction="never" />
+</menu>
