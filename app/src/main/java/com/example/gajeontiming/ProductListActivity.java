@@ -3,11 +3,16 @@ package com.example.gajeontiming;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +34,9 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.ChipGroup;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -69,6 +76,14 @@ public class ProductListActivity extends AppCompatActivity {
     private Button danawaButton;             // 다나와에서 직접 보기
     private final List<String> removedTitles = new ArrayList<>();   // 소모품으로 걸러낸 제목들
     private boolean pickMode;
+
+    // ── 품목 둘러보기 (품목으로 들어왔을 때만): 품목 안에서 검색 + 브랜드 고르기 ──
+    private String browseCategory;    // null이면 일반 검색 화면 (둘러보기 아님)
+    private String browseKeyword = "";
+    private String browseBrand;       // null이면 전체
+    private EditText browseInput;
+    private static final int BRAND_SAMPLE = 40;   // 브랜드 목록을 만들 때 살펴볼 제품 수
+    private static final int MAX_BRANDS = 8;
     private String sort = "sim";      // sim | asc | dsc
     private int page = 1;
     private boolean loading = false;
@@ -110,6 +125,7 @@ public class ProductListActivity extends AppCompatActivity {
         suggestGroup = findViewById(R.id.product_suggest_group);
         danawaButton = findViewById(R.id.product_danawa);
         danawaButton.setOnClickListener(v -> openDanawa());
+        setupBrowse();
 
         adapter = new ProductAdapter(this::onProductClick);
         LinearLayoutManager lm = new LinearLayoutManager(this);
@@ -141,6 +157,126 @@ public class ProductListActivity extends AppCompatActivity {
         retryButton.setOnClickListener(v -> loadPage(1));
 
         restart();
+    }
+
+    // ── 품목 둘러보기 ───────────────────────────────────────
+
+    /** 품목 이름 그대로 들어왔으면(☰ 메뉴 · 홈 칩) 품목 안 검색창과 브랜드 칩을 켠다 */
+    private void setupBrowse() {
+        if (category == null || !category.equals(query)) return;
+        browseCategory = category;
+        findViewById(R.id.product_browse_box).setVisibility(View.VISIBLE);
+
+        browseInput = findViewById(R.id.product_browse_input);
+        browseInput.setHint(getString(R.string.browse_hint, browseCategory));
+        ImageButton searchButton = findViewById(R.id.product_browse_search);
+        searchButton.setOnClickListener(v -> onBrowseSearch());
+        browseInput.setOnEditorActionListener((v, actionId, event) -> {
+            boolean enter = event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == KeyEvent.ACTION_DOWN;
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || enter) {
+                onBrowseSearch();
+                return true;
+            }
+            return false;
+        });
+        loadBrands();
+    }
+
+    private void onBrowseSearch() {
+        browseKeyword = browseInput.getText().toString().trim();   // 비우고 검색하면 품목 전체로
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(browseInput.getWindowToken(), 0);
+        browseInput.clearFocus();
+        applyBrowse();
+    }
+
+    /**
+     * 검색어를 "브랜드 + 검색어 + 품목"으로 만든다 (예: "삼성전자 무풍 에어컨").
+     * 서버의 품목 필터가 느슨해서 "삼성"만 보내면 SSD · 김치냉장고까지 나오므로 품목 이름을 꼭 붙인다.
+     */
+    private void applyBrowse() {
+        StringBuilder sb = new StringBuilder();
+        if (browseBrand != null) sb.append(browseBrand).append(' ');
+        if (!browseKeyword.isEmpty()) sb.append(browseKeyword).append(' ');
+        sb.append(browseCategory);
+        query = sb.toString();
+        buildAttempts();
+        restart();
+    }
+
+    /**
+     * 이 품목을 한 번 넉넉히(40개) 검색해서 2개 이상 나온 브랜드로 칩을 만든다.
+     * 품목마다 브랜드가 달라서 고정 목록 대신 결과에서 뽑는다 (판매처 이름 같은 1건짜리는 빠진다).
+     * 실패하면 브랜드 줄만 안 보이고 나머지는 그대로 쓸 수 있다.
+     */
+    private void loadBrands() {
+        ApiClient.get().searchProducts(browseCategory, 1, BRAND_SAMPLE, "sim", browseCategory)
+                .enqueue(new Callback<ProductListResponse>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ProductListResponse> call,
+                                           @NonNull Response<ProductListResponse> response) {
+                        ProductListResponse body = response.body();
+                        if (isFinishing() || body == null || body.items == null) return;
+                        Map<String, Integer> counts = new LinkedHashMap<>();
+                        for (Product p : body.items) {
+                            if (p.brand == null || p.brand.trim().isEmpty()) continue;
+                            counts.merge(p.brand.trim(), 1, Integer::sum);
+                        }
+                        List<String> brands = new ArrayList<>();
+                        counts.entrySet().stream()
+                                .filter(e -> e.getValue() >= 2)
+                                .sorted((a, b) -> b.getValue() - a.getValue())
+                                .limit(MAX_BRANDS)
+                                .forEach(e -> brands.add(e.getKey()));
+                        showBrands(brands);
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<ProductListResponse> call, @NonNull Throwable t) {
+                        // 브랜드 칩은 없어도 되는 기능이라 조용히 넘어간다
+                    }
+                });
+    }
+
+    /**
+     * 브랜드를 골랐으면 그 브랜드 제품만 남긴다.
+     * "캐리어 21평 에어컨"처럼 브랜드 이름이 다른 뜻(여행가방)도 있으면 서버가 엉뚱한 제품을 섞어 보내서다.
+     */
+    private List<Product> keepChosenBrand(List<Product> items) {
+        if (items == null || browseBrand == null) return items;
+        List<Product> kept = new ArrayList<>();
+        for (Product p : items) {
+            if (p.brand != null && browseBrand.equals(p.brand.trim())) kept.add(p);
+        }
+        return kept;
+    }
+
+    private void showBrands(List<String> brands) {
+        if (brands.size() < 2) return;   // 브랜드가 하나뿐이면 고를 의미가 없다
+        ChipGroup group = findViewById(R.id.product_brand_group);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        Chip all = (Chip) inflater.inflate(R.layout.item_filter_chip, group, false);
+        all.setText(R.string.brand_all);
+        all.setId(View.generateViewId());
+        group.addView(all);
+        for (String brand : brands) {
+            Chip chip = (Chip) inflater.inflate(R.layout.item_filter_chip, group, false);
+            chip.setText(brand);
+            chip.setTag(brand);
+            chip.setId(View.generateViewId());
+            group.addView(chip);
+        }
+        group.check(all.getId());
+        group.setOnCheckedStateChangeListener((g, checkedIds) -> {
+            if (checkedIds.isEmpty()) return;
+            Object tag = g.findViewById(checkedIds.get(0)).getTag();
+            String brand = tag instanceof String ? (String) tag : null;
+            if (brand == null ? browseBrand == null : brand.equals(browseBrand)) return;
+            browseBrand = brand;
+            applyBrowse();
+        });
+        findViewById(R.id.product_brand_scroll).setVisibility(View.VISIBLE);
     }
 
     private void buildAttempts() {
@@ -214,7 +350,7 @@ public class ProductListActivity extends AppCompatActivity {
                 // 한 페이지를 꽉 채워 오지 않았으면 마지막 페이지로 본다
                 hasMore = items != null && items.size() >= PAGE_SIZE;
 
-                List<Product> shown = removeAccessoriesIfNeeded(items);
+                List<Product> shown = keepChosenBrand(removeAccessoriesIfNeeded(items));
                 if (shown != null) adapter.addItems(shown);
 
                 if (adapter.getProductCount() == 0) {

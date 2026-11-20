@@ -11,6 +11,78 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize" />
 
+    <!--
+        품목으로 들어왔을 때만 보임 (예: ☰ 메뉴 · 홈 칩에서 "에어컨"):
+        품목 안에서 검색 + 브랜드 고르기. 검색어는 "브랜드 + 검색어 + 품목"으로 만든다 (ProductListActivity)
+    -->
+    <LinearLayout
+        android:id="@+id/product_browse_box"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="4dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="2dp">
+
+                <EditText
+                    android:id="@+id/product_browse_input"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:autofillHints="@null"
+                    android:background="@null"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textSize="14sp" />
+
+                <ImageButton
+                    android:id="@+id/product_browse_search"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/search"
+                    android:src="@android:drawable/ic_menu_search"
+                    app:tint="@color/brand_text" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 브랜드: 이 품목을 검색해서 2개 이상 나온 브랜드로 채운다. "전체"가 기본 -->
+        <HorizontalScrollView
+            android:id="@+id/product_brand_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:paddingHorizontal="16dp"
+            android:scrollbars="none"
+            android:visibility="gone">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/product_brand_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true" />
+        </HorizontalScrollView>
+    </LinearLayout>
+
     <!-- 정렬: 하나만 선택, 선택 해제 불가 -->
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/product_sort_group"

@@ -21,6 +21,15 @@ import java.util.regex.Pattern;
  *
  * 처음 규칙은 5번만 있었는데, "LG 에어컨 스탠드 극세 필터"처럼 품목 이름을 넣어 파는
  * 소모품이 빠져나와서 1~4번을 추가했다 (FQ18D7DWAN 스캔 검색에서 발견).
+ *
+ * 본품을 소모품으로 잘못 거르지 않게 (서버 DB 점검에서 실제로 걸렸던 사례)
+ *   - "A + B" 묶음 상품은 '+' 앞의 본품만 보고 판단한다 (규칙 2 · 3 · 5). 강한 신호(1)는 묶음 전체에서 본다
+ *     양쪽이 모두 숫자인 '+'("1+1")만 묶음이 아니다. "14인용+3구"는 묶음으로 나뉜다 (의도된 동작)
+ *   - 모델명이 2개여도 소모품 단어가 없고 싸지 않으면 본품이다 (예: "AI Q9000 AF60F17D11GRS")
+ *   - "히팅패드 · 듀얼호스"처럼 소모품 단어가 들어간 제품 이름은 소모품 단어로 보지 않는다
+ *   - 품목 이름이 있고 3만 원 이상인 제품의 "리모컨"은 기능 설명이다 (예: "스탠드 선풍기 가정용 리모컨")
+ *
+ * 서버(backend/app/utils/accessory_filter.py)와 같은 규칙이다. 한쪽을 고치면 다른 쪽도 같이 고칠 것.
  */
 public final class AccessoryFilter {
 
@@ -34,8 +43,22 @@ public final class AccessoryFilter {
     private static final String[] WEAK = {
             "필터", "커버", "덮개", "거치대", "받침대", "브라켓", "케이블", "리모컨", "호스",
             "부품", "소모품", "세정제", "세척제", "스티커", "패드", "걸레", "먼지봉투",
-            "브러시", "브러쉬", "배터리", "어댑터", "노즐", "트레이"
+            "브러시", "브러쉬", "배터리", "어댑터", "노즐", "트레이",
+            // 로봇청소기 · 청소기 소모품 (예: "로보락 S9 MaxV Ultra 전용 울트라도크 거름망")
+            "거름망", "필터망", "더스트백", "물걸레포", "전용"
     };
+
+    /** 소모품 단어가 들어 있지만 그 자체가 본품 이름인 말 → 소모품 단어 검사 전에 지운다 */
+    private static final String[] PRODUCT_COMPOUNDS = {
+            "히팅패드", "전기패드", "온열패드", "쿨링패드", "듀얼호스", "싱글호스"
+    };
+
+    /** 품목 이름과 같이 있고 3만 원 이상이면 본품의 기능 설명인 말 (예: "스탠드 선풍기 리모컨" 99,000원) */
+    private static final String[] FEATURE_WORDS = { "리모컨" };
+    private static final int FEATURE_MIN_PRICE = 30000;
+
+    /** 묶음 상품의 '+' (양쪽이 모두 숫자인 "1+1"만 제외. "14인용+3구"는 묶음으로 나뉜다) */
+    private static final Pattern BUNDLE_PLUS = Pattern.compile("(?<![0-9])\\+|\\+(?![0-9])");
 
     /** 제품명 끝에 붙는 수량 표시: 2개입, 10매, 1EA, 3P, 세트, 1+1 … */
     private static final Pattern QUANTITY = Pattern.compile(
@@ -51,23 +74,46 @@ public final class AccessoryFilter {
 
     /** price: 상품 가격 (모르면 0) */
     public static boolean isAccessory(String title, long price) {
-        if (title == null) return false;
+        if (title == null || title.isEmpty()) return false;
         String t = title.toUpperCase(Locale.ROOT);
 
-        // 1) 강한 신호
+        // 1) 강한 신호 (묶음 전체에서)
         for (String w : STRONG) {
             if (t.contains(w)) return true;
         }
-        // 2) 호환 모델명 나열
-        if (distinctModelCount(title) >= 2) return true;
-        // 3) 소모품 단어로 끝남
-        if (containsWeak(lastMeaningfulWord(t))) return true;
 
-        boolean hasWeak = containsWeak(t);
+        // 묶음이면 '+' 앞 본품만 본다 (예: "DW80H73Y1UZ + NZ63DB607CFH", "ZEUS L1300+전용가방")
+        String main = mainPart(title);
+        String m = main.toUpperCase(Locale.ROOT);
+        boolean hasCategory = Categories.detect(main) != null;
+        boolean featureOk = hasCategory && price >= FEATURE_MIN_PRICE;
+        boolean hasWeak = containsWeak(weakText(m, featureOk));
+        boolean cheap = price > 0 && price < CHEAP;
+
+        // 2) 호환 모델명 나열 (모델명이 2개여도 소모품 단어가 없고 싸지 않으면 본품)
+        if (distinctModelCount(main) >= 2 && (hasWeak || cheap)) return true;
+        // 3) 소모품 단어로 끝남
+        if (containsWeak(weakText(lastMeaningfulWord(m), featureOk))) return true;
         // 4) 싼데 소모품 단어가 있음
-        if (hasWeak && price > 0 && price < CHEAP) return true;
+        if (hasWeak && cheap) return true;
         // 5) 소모품 단어가 있고 본품 이름이 없음
-        return hasWeak && Categories.detect(title) == null;
+        return hasWeak && !hasCategory;
+    }
+
+    /** 묶음 상품이면 첫 '+' 앞의 본품 부분. 묶음이 아니거나 앞부분이 비면 제목 그대로 */
+    static String mainPart(String title) {
+        String[] parts = BUNDLE_PLUS.split(title);
+        String main = parts.length > 0 ? parts[0].trim() : "";
+        return main.isEmpty() ? title : main;
+    }
+
+    /** 소모품 단어 검사에서 빼야 할 말(본품 이름 · 기능 설명)을 지운 문자열 */
+    static String weakText(String text, boolean featureOk) {
+        for (String w : PRODUCT_COMPOUNDS) text = text.replace(w, " ");
+        if (featureOk) {
+            for (String w : FEATURE_WORDS) text = text.replace(w, " ");
+        }
+        return text;
     }
 
     private static boolean containsWeak(String text) {
