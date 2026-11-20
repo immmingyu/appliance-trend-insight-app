@@ -46,11 +46,15 @@ public interface ApiService {
 
     // F-05 제품 리포트: AI 분석 + 실사용 후기 (AI 호출이 있어 10~20초 걸릴 수 있음)
     @GET("api/ai-analysis")
-    Call<AiAnalysisResponse> getAiAnalysis(@Query("query") String query);
+    // category: 품목 이름(에어컨 · 로봇청소기 등). 제목에 품목 이름이 없을 때 서버가 이 값으로 후기 · 뉴스를 찾는다.
+    // null이면 Retrofit이 파라미터를 빼고 보낸다
+    Call<AiAnalysisResponse> getAiAnalysis(@Query("query") String query,
+                                           @Query("category") String category);
 
     // F-05 제품 리포트: 관련 뉴스
     @GET("api/report")
-    Call<ReportResponse> getReport(@Query("query") String query);
+    Call<ReportResponse> getReport(@Query("query") String query,
+                                   @Query("category") String category);
 
     // F-06 구매 타이밍: 30일 가격 이력 + 구매 판단
     // category에는 제품명을, product_id에는 제품 번호를 넣는다 (서버가 그 제품을 찾아 추적)
