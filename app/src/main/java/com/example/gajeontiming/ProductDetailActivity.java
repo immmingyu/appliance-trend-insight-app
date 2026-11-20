@@ -201,7 +201,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         // 제목에 모델명이 있으면 모델명만 보낸다 (제목 전체로는 엉뚱한 후기가 섞여 분석이 부정확해진다)
         String model = ModelNameExtractor.modelFromTitle(product.title);
-        aiCall = ApiClient.get().getAiAnalysis(model != null ? model : product.title);
+        aiCall = ApiClient.get().getAiAnalysis(model != null ? model : product.title, resolveCategory());
         aiCall.enqueue(new Callback<AiAnalysisResponse>() {
             @Override
             public void onResponse(@NonNull Call<AiAnalysisResponse> call,
@@ -296,7 +296,8 @@ public class ProductDetailActivity extends AppCompatActivity {
         newsState.setVisibility(View.VISIBLE);
         newsState.setText(R.string.detail_news_loading);
 
-        reportCall = ApiClient.get().getReport(product.title);
+        // 품목을 같이 보내야 "로보락 S9 MaxV Ultra"처럼 제목에 품목 이름이 없는 제품도 뉴스를 찾는다
+        reportCall = ApiClient.get().getReport(product.title, resolveCategory());
         reportCall.enqueue(new Callback<ReportResponse>() {
             @Override
             public void onResponse(@NonNull Call<ReportResponse> call,
