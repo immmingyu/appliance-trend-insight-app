@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    홈 왼쪽 위 ☰ 메뉴 (MainActivity.onDrawerItem에서 화면 이동).
+    "제품 둘러보기"를 누르면 바로 아래에 카테고리가 펼쳐진다. 카테고리 항목은 코드에서
+    Categories.ALL로 같은 그룹에 orderInCategory 11~ 사이에 끼워 넣는다.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/drawer_group_products">
+        <item
+            android:id="@+id/drawer_products"
+            android:icon="@drawable/ic_apps"
+            android:orderInCategory="10"
+            android:title="@string/drawer_products" />
+    </group>
+    <group android:id="@+id/drawer_group_ai">
+        <item
+            android:id="@+id/drawer_recommend"
+            android:icon="@drawable/ic_star"
+            android:orderInCategory="100"
+            android:title="@string/recommend_title" />
+        <item
+            android:id="@+id/drawer_chat"
+            android:icon="@drawable/ic_chat"
+            android:orderInCategory="101"
+            android:title="@string/chat_title" />
+        <item
+            android:id="@+id/drawer_alerts"
+            android:icon="@drawable/ic_bell"
+            android:orderInCategory="102"
+            android:title="@string/alert_title" />
+    </group>
+    <group android:id="@+id/drawer_group_account">
+        <item
+            android:id="@+id/drawer_mypage"
+            android:icon="@drawable/ic_person"
+            android:orderInCategory="200"
+            android:title="@string/mypage_title" />
+    </group>
+</menu>

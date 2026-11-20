@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    다크 모드 색. 어두운 배경에서 글씨가 읽히도록(대비 4.5:1 이상) 밝은 톤으로 바꾼다.
+    이름은 values/의 colors.xml · splash.xml · timing_colors.xml과 같다.
+-->
+<resources>
+    <color name="brand_text">#D0BCFF</color>
+    <color name="on_score">#1C1B1F</color>
+    <color name="chat_ai_bubble">#2D2C31</color>
+    <color name="notice_bg">#3A2A12</color>
+    <color name="notice_text">#FFCC80</color>
+    <color name="dot_inactive">#4A4458</color>
+
+    <!-- splash.xml: 연보라 배경은 어두운 보라로. splash_logo(진한 보라 채우기 + 흰 글씨)는 그대로 둔다 -->
+    <color name="splash_background">#2A2340</color>
+
+    <!-- timing_colors.xml: 점수 · 그래프 색 -->
+    <color name="score_green">#81C995</color>
+    <color name="score_blue">#8AB4F8</color>
+    <color name="score_yellow">#FDD663</color>
+    <color name="score_red">#F28B82</color>
+    <color name="timing_line">#8AB4F8</color>
+    <color name="timing_chart_text">#BDBDBD</color>
+</resources>

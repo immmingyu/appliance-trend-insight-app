@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 11 이하 자동 백업 규칙.
+    로그인 토큰(SessionManager의 "session" 저장값)은 다른 기기로 복원되면 안 되므로 뺀다.
+    최근 본 제품 · 앱 소개 완료 기록 등 나머지는 그대로 백업된다.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="session.xml" />
+</full-backup-content>

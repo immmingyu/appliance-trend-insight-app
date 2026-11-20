@@ -154,9 +154,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:background="#FFF4E5"
+                            android:background="@color/notice_bg"
                             android:padding="10dp"
-                            android:textColor="#8A4B00"
+                            android:textColor="@color/notice_text"
                             android:textSize="13sp" />
 
                         <TextView

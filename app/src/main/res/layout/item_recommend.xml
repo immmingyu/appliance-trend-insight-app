@@ -77,7 +77,7 @@
             android:backgroundTint="@color/score_blue"
             android:paddingHorizontal="10dp"
             android:paddingVertical="3dp"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/on_score"
             android:textSize="12sp" />
 
         <TextView

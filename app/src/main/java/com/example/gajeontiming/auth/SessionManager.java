@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
  */
 public final class SessionManager {
 
+    // 이름을 바꾸면 res/xml/backup_rules.xml · data_extraction_rules.xml의 "session.xml"도 같이 바꿀 것
+    // (로그인 토큰이 백업으로 다른 기기에 복원되지 않게 빼 두었다)
     private static final String PREF = "session";
     private static final String KEY_TOKEN = "token";
     private static final String KEY_EMAIL = "email";

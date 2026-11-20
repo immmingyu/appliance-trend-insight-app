@@ -17,7 +17,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -26,15 +29,18 @@ import com.example.gajeontiming.adapter.RecentAdapter;
 import com.example.gajeontiming.adapter.TrendAdapter;
 import com.example.gajeontiming.data.RecentProductDb;
 import com.example.gajeontiming.data.TrendCache;
-import com.example.gajeontiming.ui.Pulse;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.model.TrendResponse;
+import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.network.ApiClient;
+import com.example.gajeontiming.ui.Pulse;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.navigation.NavigationView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -51,6 +57,11 @@ public class MainActivity extends AppCompatActivity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
+    private DrawerLayout drawer;
+    private TextView drawerUser;   // ☰ 메뉴 맨 위 로그인 상태
+    private MenuItem productsItem;   // ☰ 메뉴의 "제품 둘러보기" (누르면 카테고리가 펼쳐짐)
+    private final List<MenuItem> categoryItems = new ArrayList<>();
+    private boolean categoriesOpen = false;
     private SwipeRefreshLayout swipe;
     private RecyclerView list;
     private View skeleton;   // 트렌드를 불러오는 동안 보여 주는 빈 카드들
@@ -71,6 +82,9 @@ public class MainActivity extends AppCompatActivity {
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        // 앱 이름은 툴바 안의 굵은 글씨(activity_main.xml)로 보여 주므로 기본 제목은 끈다
+        if (getSupportActionBar() != null) getSupportActionBar().setDisplayShowTitleEnabled(false);
+        setupDrawer(toolbar);
 
         swipe = findViewById(R.id.home_swipe);
         list = findViewById(R.id.home_trend_list);
@@ -94,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        setupShortcuts();
         setupCategories();
         setupRecent();
 
@@ -108,38 +121,96 @@ public class MainActivity extends AppCompatActivity {
         loadTrend();
     }
 
-    // ── 오른쪽 위 메뉴: 마이페이지 ───────────────────────────
+    // ── ☰ 메뉴: AI 추천 · AI 상담 · 가격 알림 · 마이페이지 ───────
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+    private void setupDrawer(MaterialToolbar toolbar) {
+        drawer = findViewById(R.id.home_drawer);
+        NavigationView nav = findViewById(R.id.home_nav);
+        toolbar.setNavigationOnClickListener(v -> drawer.openDrawer(GravityCompat.START));
+        nav.setNavigationItemSelectedListener(this::onDrawerItem);
+        setupDrawerCategories(nav.getMenu());
+
+        // 머리 부분(앱 이름 · 로그인 상태)을 누르면 마이페이지 (로그인은 마이페이지 안에서)
+        View header = nav.getHeaderView(0);
+        drawerUser = header.findViewById(R.id.drawer_user);
+        header.setOnClickListener(v -> openFromDrawer(MyPageActivity.class));
+
+        // 메뉴가 열려 있을 때 뒤로 가기 → 앱을 닫지 말고 메뉴만 닫는다
+        OnBackPressedCallback closeDrawer = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                drawer.closeDrawer(GravityCompat.START);
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, closeDrawer);
+        drawer.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerOpened(@NonNull View v) {
+                closeDrawer.setEnabled(true);
+            }
+
+            @Override
+            public void onDrawerClosed(@NonNull View v) {
+                closeDrawer.setEnabled(false);
+            }
+        });
+    }
+
+    /** "제품 둘러보기" 바로 아래에 카테고리를 숨긴 채로 넣어 둔다 (누르면 펼쳐짐) */
+    private void setupDrawerCategories(Menu menu) {
+        productsItem = menu.findItem(R.id.drawer_products);
+        int order = productsItem.getOrder() + 1;
+        for (String name : Categories.ALL) {
+            MenuItem item = menu.add(R.id.drawer_group_products, View.generateViewId(), order++, name);
+            item.setVisible(false);
+            categoryItems.add(item);
+        }
+        setCategoriesOpen(false);
+    }
+
+    private void setCategoriesOpen(boolean open) {
+        categoriesOpen = open;
+        for (MenuItem item : categoryItems) item.setVisible(open);
+        productsItem.setTitle(open ? R.string.drawer_products_close : R.string.drawer_products_open);
+    }
+
+    private boolean onDrawerItem(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.drawer_products) {
+            // 메뉴는 닫지 않고 목록만 펼치거나 접는다.
+            // 클릭을 처리하는 동안 NavigationView가 목록 갱신을 멈춰 두므로, 처리가 끝난 뒤에 바꾼다
+            drawer.post(() -> setCategoriesOpen(!categoriesOpen));
+            return false;   // 선택 표시(하이라이트)는 남기지 않는다
+        }
+        if (categoryItems.contains(item)) {
+            String name = item.getTitle().toString();
+            drawer.closeDrawer(GravityCompat.START);
+            openProductList(name, name);   // 카테고리 제품 목록 → 제품을 누르면 상세(리포트)
+            return true;
+        }
+        if (id == R.id.drawer_recommend) openFromDrawer(RecommendActivity.class);
+        else if (id == R.id.drawer_chat) openFromDrawer(ChatActivity.class);
+        // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
+        else if (id == R.id.drawer_alerts) openFromDrawer(AlertListActivity.class);
+        else if (id == R.id.drawer_mypage) openFromDrawer(MyPageActivity.class);
+        else return false;
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.menu_mypage) {
-            startActivity(new Intent(this, MyPageActivity.class));
-            return true;
+    private void openFromDrawer(Class<?> target) {
+        drawer.closeDrawer(GravityCompat.START);
+        startActivity(new Intent(this, target));
+    }
+
+    /** 로그인 · 로그아웃하고 돌아올 수 있으니 화면에 돌아올 때마다 새로 쓴다 */
+    private void bindDrawerUser() {
+        String name = SessionManager.getName();
+        if (SessionManager.isLoggedIn()) {
+            drawerUser.setText(getString(R.string.drawer_user,
+                    name != null && !name.isEmpty() ? name : SessionManager.getEmail()));
+        } else {
+            drawerUser.setText(R.string.drawer_guest);
         }
-        return super.onOptionsItemSelected(item);
-    }
-
-    // ── 바로가기: AI 추천 · AI 상담 · 가격 알림 ───────────────
-
-    private void setupShortcuts() {
-        bindShortcut(R.id.home_shortcut_recommend, "🤖", R.string.recommend_title, RecommendActivity.class);
-        bindShortcut(R.id.home_shortcut_chat, "💬", R.string.chat_title, ChatActivity.class);
-        // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
-        bindShortcut(R.id.home_shortcut_alerts, "🔔", R.string.alert_title, AlertListActivity.class);
-    }
-
-    /** 바로가기 버튼 하나(item_home_shortcut.xml)에 그림 · 이름 · 이동할 화면을 넣는다 */
-    private void bindShortcut(int viewId, String icon, int label, Class<?> target) {
-        View shortcut = findViewById(viewId);
-        ((TextView) shortcut.findViewById(R.id.shortcut_icon)).setText(icon);
-        ((TextView) shortcut.findViewById(R.id.shortcut_label)).setText(label);
-        shortcut.setOnClickListener(v -> startActivity(new Intent(this, target)));
     }
 
     /** 리포트를 보고 돌아오면 최근 본 제품을 새로 그린다 */
@@ -147,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         bindRecent();
+        bindDrawerUser();
     }
 
     // ── F-08 최근 본 제품 ─────────────────────────────────────

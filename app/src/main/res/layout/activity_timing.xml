@@ -103,7 +103,7 @@
                                 android:background="@drawable/bg_badge"
                                 android:paddingHorizontal="14dp"
                                 android:paddingVertical="6dp"
-                                android:textColor="#FFFFFF"
+                                android:textColor="@color/on_score"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
