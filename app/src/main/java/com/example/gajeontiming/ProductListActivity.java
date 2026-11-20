@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.gajeontiming.ui.Pulse;
 import com.example.gajeontiming.adapter.ProductAdapter;
 import com.example.gajeontiming.model.Product;
 import com.example.gajeontiming.model.ProductListResponse;
@@ -76,7 +76,9 @@ public class ProductListActivity extends AppCompatActivity {
     private Call<ProductListResponse> currentCall;
 
     private RecyclerView list;
-    private ProgressBar progress;
+    private View skeleton;        // 첫 페이지를 불러오는 동안 보여 주는 안내 + 빈 카드
+    private View skeletonCards;   // 그중 깜빡이는 빈 카드 부분
+    private TextView skeletonText;
     private TextView stateText;
     private Button retryButton;
     private ProductAdapter adapter;
@@ -99,7 +101,9 @@ public class ProductListActivity extends AppCompatActivity {
         }
 
         list = findViewById(R.id.product_list);
-        progress = findViewById(R.id.product_progress);
+        skeleton = findViewById(R.id.product_skeleton);
+        skeletonCards = findViewById(R.id.product_skeleton_cards);
+        skeletonText = findViewById(R.id.product_skeleton_text);
         stateText = findViewById(R.id.product_state_text);
         retryButton = findViewById(R.id.product_retry);
         fallbackNotice = findViewById(R.id.product_fallback_notice);
@@ -272,9 +276,8 @@ public class ProductListActivity extends AppCompatActivity {
         retryButton.setVisibility(View.GONE);
         if (firstPage) {
             list.setVisibility(View.GONE);
-            progress.setVisibility(View.VISIBLE);
-            stateText.setVisibility(View.VISIBLE);
-            stateText.setText("검색하는 중…");
+            stateText.setVisibility(View.GONE);
+            setSkeleton(true);
         } else {
             // 스크롤 도중에는 목록을 바로 바꿀 수 없어서 다음 순서로 미룬다
             list.post(() -> { if (loading) adapter.setLoadingFooter(true); });
@@ -283,14 +286,14 @@ public class ProductListActivity extends AppCompatActivity {
 
     private void showList() {
         adapter.setLoadingFooter(false);
-        progress.setVisibility(View.GONE);
+        setSkeleton(false);
         stateText.setVisibility(View.GONE);
         retryButton.setVisibility(View.GONE);
         list.setVisibility(View.VISIBLE);
     }
 
     private void showEmpty() {
-        progress.setVisibility(View.GONE);
+        setSkeleton(false);
         list.setVisibility(View.GONE);
         retryButton.setVisibility(View.GONE);
         stateText.setVisibility(View.VISIBLE);
@@ -343,12 +346,12 @@ public class ProductListActivity extends AppCompatActivity {
 
     private void showError(String text) {
         adapter.setLoadingFooter(false);
+        setSkeleton(false);
         if (adapter.getProductCount() > 0) {
             // 더 보기 중 실패: 이미 본 목록은 그대로 두고 안내만. 다시 스크롤하면 재시도된다
             Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
             return;
         }
-        progress.setVisibility(View.GONE);
         list.setVisibility(View.GONE);
         stateText.setVisibility(View.VISIBLE);
         stateText.setText(text);
@@ -367,6 +370,18 @@ public class ProductListActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (currentCall != null) currentCall.cancel();
+        Pulse.stop(skeletonCards);
         super.onDestroy();
+    }
+
+    /** 빈 카드만 있으면 "결과 없음"처럼 보여서, 위에 검색 중 안내를 같이 띄운다 */
+    private void setSkeleton(boolean on) {
+        skeleton.setVisibility(on ? View.VISIBLE : View.GONE);
+        if (on) {
+            skeletonText.setText(getString(R.string.product_searching, query));
+            Pulse.start(skeletonCards);
+        } else {
+            Pulse.stop(skeletonCards);
+        }
     }
 }

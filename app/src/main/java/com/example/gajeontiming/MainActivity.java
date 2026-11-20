@@ -13,7 +13,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +26,7 @@ import com.example.gajeontiming.adapter.RecentAdapter;
 import com.example.gajeontiming.adapter.TrendAdapter;
 import com.example.gajeontiming.data.RecentProductDb;
 import com.example.gajeontiming.data.TrendCache;
+import com.example.gajeontiming.ui.Pulse;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.model.TrendResponse;
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     private SwipeRefreshLayout swipe;
     private RecyclerView list;
-    private ProgressBar progress;
+    private View skeleton;   // 트렌드를 불러오는 동안 보여 주는 빈 카드들
     private TextView stateText;
     private Button retryButton;
     private EditText searchInput;
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
         swipe = findViewById(R.id.home_swipe);
         list = findViewById(R.id.home_trend_list);
-        progress = findViewById(R.id.home_progress);
+        skeleton = findViewById(R.id.home_skeleton);
         stateText = findViewById(R.id.home_state_text);
         retryButton = findViewById(R.id.home_retry);
         searchInput = findViewById(R.id.home_search_input);
@@ -276,6 +276,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         handler.removeCallbacks(showSlowNotice);
+        Pulse.stop(skeleton);
         super.onDestroy();
     }
 
@@ -287,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLoading() {
-        progress.setVisibility(View.VISIBLE);
+        setSkeleton(true);
         stateText.setVisibility(View.VISIBLE);
         stateText.setText(R.string.home_trend_loading);
         retryButton.setVisibility(View.GONE);
@@ -295,17 +296,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showList() {
-        progress.setVisibility(View.GONE);
+        setSkeleton(false);
         stateText.setVisibility(View.GONE);
         retryButton.setVisibility(View.GONE);
         list.setVisibility(View.VISIBLE);
     }
 
     private void showError(String text) {
-        progress.setVisibility(View.GONE);
+        setSkeleton(false);
         stateText.setVisibility(View.VISIBLE);
         stateText.setText(text);
         retryButton.setVisibility(View.VISIBLE);
         list.setVisibility(View.GONE);
+    }
+
+    private void setSkeleton(boolean on) {
+        skeleton.setVisibility(on ? View.VISIBLE : View.GONE);
+        if (on) Pulse.start(skeleton);
+        else Pulse.stop(skeleton);
     }
 }
