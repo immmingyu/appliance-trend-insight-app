@@ -19,7 +19,8 @@
         <!-- 앱을 켜면 처음 뜨는 화면: 서버를 깨운 뒤 홈으로 이동 -->
         <activity
             android:name=".SplashActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.GajeonTiming.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -27,6 +28,9 @@
         </activity>
 
         <activity android:name=".MainActivity" />
+
+        <!-- 앱 소개 (처음 실행할 때만 시작 화면 다음에 나옴) -->
+        <activity android:name=".OnboardingActivity" />
 
         <!-- F-04 제품 목록 (상위 화면: 홈) -->
         <activity

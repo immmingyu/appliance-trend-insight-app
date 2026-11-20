@@ -4,13 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.example.gajeontiming.model.HealthResponse;
 import com.example.gajeontiming.network.ApiClient;
@@ -21,72 +18,51 @@ import retrofit2.Response;
 
 /**
  * F-01 시작 화면.
- * 서버에 연결 확인 요청을 보내 잠든 서버를 깨우고, 응답이 오면 홈 화면으로 이동한다.
+ * 연한 보라 배경 + 로고 시작 화면(테마: Theme.GajeonTiming.Starting)을 1초 보여 준 뒤 홈으로 이동한다.
+ * 그동안 잠든 서버를 깨우는 요청을 보내 두지만, 서버 응답은 기다리지 않는다.
+ * (홈이 저장해 둔 트렌드를 먼저 보여 주므로 여기서 최대 1분씩 막을 필요가 없다.)
  */
 public class SplashActivity extends AppCompatActivity {
 
-    private static final long SLOW_NOTICE_MS = 5000;   // 5초가 넘으면 "깨우는 중" 안내로 바꿈
-
-    private ProgressBar progress;
-    private TextView message;
-    private Button retryButton;
+    private static final long SPLASH_MS = 1000;   // 시작 화면을 보여 주는 시간
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final Runnable showSlowNotice = () -> message.setText(R.string.splash_slow);
+    private final Runnable goHome = () -> {
+        // 처음 실행이면 앱 소개부터, 이미 봤으면 바로 홈으로
+        Class<?> next = OnboardingActivity.isDone(this) ? MainActivity.class : OnboardingActivity.class;
+        startActivity(new Intent(this, next));
+        finish();   // 뒤로 가기를 눌러도 시작 화면으로 돌아오지 않게 닫는다
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // super.onCreate보다 먼저 호출해야 시작 화면 테마가 제대로 적용된다
+        SplashScreen splash = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
 
-        progress = findViewById(R.id.splash_progress);
-        message = findViewById(R.id.splash_message);
-        retryButton = findViewById(R.id.splash_retry);
+        // 이 화면은 그릴 내용이 없으므로, 홈으로 넘어갈 때까지 시작 화면을 계속 띄워 둔다
+        splash.setKeepOnScreenCondition(() -> true);
 
-        retryButton.setOnClickListener(v -> checkServer());
-        checkServer();
+        wakeServer();
+        handler.postDelayed(goHome, SPLASH_MS);
     }
 
-    private void checkServer() {
-        progress.setVisibility(View.VISIBLE);
-        retryButton.setVisibility(View.GONE);
-        message.setText(R.string.splash_waking);
-        handler.postDelayed(showSlowNotice, SLOW_NOTICE_MS);
+    /** 1초 안에 뒤로 가기로 나가면 홈이 뒤늦게 열리지 않게 예약을 취소한다 */
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacks(goHome);
+        super.onDestroy();
+    }
 
+    /** 결과는 쓰지 않는다. 서버가 일찍 깨기 시작하게 하는 것이 목적 */
+    private static void wakeServer() {
         ApiClient.get().health().enqueue(new Callback<HealthResponse>() {
             @Override
             public void onResponse(@NonNull Call<HealthResponse> call,
-                                   @NonNull Response<HealthResponse> response) {
-                handler.removeCallbacks(showSlowNotice);
-                if (response.isSuccessful()) {
-                    goHome();
-                } else {
-                    showError();
-                }
-            }
+                                   @NonNull Response<HealthResponse> response) { }
 
             @Override
-            public void onFailure(@NonNull Call<HealthResponse> call, @NonNull Throwable t) {
-                handler.removeCallbacks(showSlowNotice);
-                showError();
-            }
+            public void onFailure(@NonNull Call<HealthResponse> call, @NonNull Throwable t) { }
         });
-    }
-
-    private void goHome() {
-        startActivity(new Intent(this, MainActivity.class));
-        finish();   // 뒤로 가기를 눌러도 시작 화면으로 돌아오지 않게 닫는다
-    }
-
-    private void showError() {
-        progress.setVisibility(View.GONE);
-        message.setText(R.string.splash_failed);
-        retryButton.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    protected void onDestroy() {
-        handler.removeCallbacks(showSlowNotice);
-        super.onDestroy();
     }
 }

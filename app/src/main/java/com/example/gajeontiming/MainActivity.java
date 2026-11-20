@@ -2,6 +2,8 @@ package com.example.gajeontiming;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,6 +26,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.gajeontiming.adapter.RecentAdapter;
 import com.example.gajeontiming.adapter.TrendAdapter;
 import com.example.gajeontiming.data.RecentProductDb;
+import com.example.gajeontiming.data.TrendCache;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.model.TrendResponse;
@@ -44,6 +47,10 @@ import retrofit2.Response;
  */
 public class MainActivity extends AppCompatActivity {
 
+    private static final long SLOW_NOTICE_MS = 5000;   // 5초가 넘으면 "서버 깨우는 중" 안내로 바꿈
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
     private SwipeRefreshLayout swipe;
     private RecyclerView list;
     private ProgressBar progress;
@@ -54,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView recentTitle;
     private RecyclerView recentList;
     private RecentAdapter recentAdapter;
+    // 뷰 필드보다 아래에 선언해야 한다 (위에 두면 컴파일 오류: illegal forward reference)
+    private final Runnable showSlowNotice = () -> stateText.setText(R.string.home_server_waking);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
+        setupShortcuts();
         setupCategories();
         setupRecent();
 
@@ -98,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         loadTrend();
     }
 
-    // ── 오른쪽 위 메뉴: 마이페이지 / 가격 알림 ─────────────────
+    // ── 오른쪽 위 메뉴: 마이페이지 ───────────────────────────
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -108,24 +118,28 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.menu_recommend) {
-            startActivity(new Intent(this, RecommendActivity.class));
-            return true;
-        }
-        if (id == R.id.menu_chat) {
-            startActivity(new Intent(this, ChatActivity.class));
-            return true;
-        }
-        if (id == R.id.menu_mypage) {
+        if (item.getItemId() == R.id.menu_mypage) {
             startActivity(new Intent(this, MyPageActivity.class));
             return true;
         }
-        if (id == R.id.menu_alerts) {          // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
-            startActivity(new Intent(this, AlertListActivity.class));
-            return true;
-        }
         return super.onOptionsItemSelected(item);
+    }
+
+    // ── 바로가기: AI 추천 · AI 상담 · 가격 알림 ───────────────
+
+    private void setupShortcuts() {
+        bindShortcut(R.id.home_shortcut_recommend, "🤖", R.string.recommend_title, RecommendActivity.class);
+        bindShortcut(R.id.home_shortcut_chat, "💬", R.string.chat_title, ChatActivity.class);
+        // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
+        bindShortcut(R.id.home_shortcut_alerts, "🔔", R.string.alert_title, AlertListActivity.class);
+    }
+
+    /** 바로가기 버튼 하나(item_home_shortcut.xml)에 그림 · 이름 · 이동할 화면을 넣는다 */
+    private void bindShortcut(int viewId, String icon, int label, Class<?> target) {
+        View shortcut = findViewById(viewId);
+        ((TextView) shortcut.findViewById(R.id.shortcut_icon)).setText(icon);
+        ((TextView) shortcut.findViewById(R.id.shortcut_label)).setText(label);
+        shortcut.setOnClickListener(v -> startActivity(new Intent(this, target)));
     }
 
     /** 리포트를 보고 돌아오면 최근 본 제품을 새로 그린다 */
@@ -198,22 +212,40 @@ public class MainActivity extends AppCompatActivity {
 
     // ── F-02 트렌드 ─────────────────────────────────────────
 
+    /**
+     * 저장해 둔 트렌드가 있으면 먼저 보여 주고, 서버의 최신 목록으로 뒤에서 바꿔치기한다.
+     * 서버가 잠들어 있어도 사용자는 바로 목록을 볼 수 있다.
+     */
     private void loadTrend() {
-        if (!swipe.isRefreshing()) {
+        boolean showingList = list.getVisibility() == View.VISIBLE;
+        if (!showingList) {
+            TrendResponse cached = TrendCache.load(this);
+            if (cached != null) {
+                adapter.setItems(cached.items);
+                showList();
+                showingList = true;
+            }
+        }
+
+        if (showingList) {
+            swipe.setRefreshing(true);   // 목록은 그대로 두고 위쪽 동그라미로만 "갱신 중" 표시
+        } else {
             showLoading();
+            handler.postDelayed(showSlowNotice, SLOW_NOTICE_MS);
         }
 
         ApiClient.get().getTrend(null).enqueue(new Callback<TrendResponse>() {
             @Override
             public void onResponse(@NonNull Call<TrendResponse> call,
                                    @NonNull Response<TrendResponse> response) {
-                swipe.setRefreshing(false);
                 TrendResponse body = response.body();
                 if (!response.isSuccessful() || body == null) {
-                    showError(getString(R.string.home_trend_failed));
+                    onTrendFailed(getString(R.string.home_trend_failed));
                 } else if (body.items == null || body.items.isEmpty()) {
-                    showError(getString(R.string.home_trend_empty));
+                    onTrendFailed(getString(R.string.home_trend_empty));
                 } else {
+                    finishLoading();
+                    TrendCache.save(MainActivity.this, body);
                     adapter.setItems(body.items);
                     showList();
                 }
@@ -221,10 +253,30 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<TrendResponse> call, @NonNull Throwable t) {
-                swipe.setRefreshing(false);
-                showError(getString(R.string.home_trend_failed));
+                onTrendFailed(getString(R.string.home_trend_failed));
             }
         });
+    }
+
+    /** 새 목록을 못 받았을 때: 지난 목록을 보고 있었다면 그대로 두고 짧게 알리기만 한다 */
+    private void onTrendFailed(String text) {
+        finishLoading();
+        if (list.getVisibility() == View.VISIBLE) {
+            Toast.makeText(this, R.string.home_trend_stale, Toast.LENGTH_SHORT).show();
+        } else {
+            showError(text);
+        }
+    }
+
+    private void finishLoading() {
+        handler.removeCallbacks(showSlowNotice);
+        swipe.setRefreshing(false);
+    }
+
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacks(showSlowNotice);
+        super.onDestroy();
     }
 
     /** 트렌드 제품을 누르면 바로 리포트 화면으로 (TrendItem도 Product라서 그대로 넘길 수 있다) */
