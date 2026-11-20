@@ -67,4 +67,19 @@ public class ModelNameExtractorTest {
                 ModelNameExtractor.shorterQueries("CRP-LHTR0610FW"));
         assertTrue(ModelNameExtractor.shorterQueries("HW500").isEmpty());   // 6자 미만은 줄이지 않음
     }
+
+    @Test
+    public void 상품_제목에서_모델명만_뽑는다() {
+        assertEquals("AF60F17D11GS", ModelNameExtractor.modelFromTitle("삼성전자 AI Q9000 AF60F17D11GS"));
+        assertEquals("AS356NSMA",
+                ModelNameExtractor.modelFromTitle("LG전자 오브제컬렉션 퓨리케어 AI 360˚ M7 AS356NSMA"));
+    }
+
+    @Test
+    public void 모델명이_없거나_짧은_시리즈명뿐이면_null() {
+        assertNull(ModelNameExtractor.modelFromTitle("로보락 S9 MaxV Ultra"));
+        assertNull(ModelNameExtractor.modelFromTitle("모바 P70 Pro Ultra"));
+        assertNull(ModelNameExtractor.modelFromTitle("삼성 Q9000 스탠드 에어컨"));
+        assertNull(ModelNameExtractor.modelFromTitle(null));
+    }
 }

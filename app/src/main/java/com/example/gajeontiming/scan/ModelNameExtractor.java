@@ -76,6 +76,20 @@ public final class ModelNameExtractor {
         return t;
     }
 
+    /**
+     * 상품 제목에서 AI 분석 · 후기 검색에 쓸 모델명을 뽑는다. 없으면 null.
+     * 제목 전체로 검색하면 "삼성", "AI" 같은 흔한 단어에 걸린 엉뚱한 글(노트북 · 안경 등)이 섞여서
+     * 모델명만 보내는 편이 후기가 훨씬 정확하다.
+     * Q9000 같은 짧은 시리즈명은 여러 모델에 걸리므로 8자 이상인 후보만 쓴다.
+     * 예: "삼성전자 AI Q9000 AF60F17D11GS" → AF60F17D11GS, "로보락 S9 MaxV Ultra" → null
+     */
+    public static String modelFromTitle(String title) {
+        for (String c : extract(title).candidates) {
+            if (c.length() >= 8) return c;
+        }
+        return null;
+    }
+
     /** 다른 화면에서 쓰는 이름 (검색어가 모델명처럼 생겼는지) */
     public static boolean looksLikeModel(String text) {
         return text != null && isModelLike(normalize(text));

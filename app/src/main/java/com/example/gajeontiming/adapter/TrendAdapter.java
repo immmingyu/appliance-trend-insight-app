@@ -58,27 +58,13 @@ public class TrendAdapter extends RecyclerView.Adapter<TrendAdapter.Holder> {
         boolean top3 = position < 3;
         h.rank.setBackgroundResource(top3 ? R.drawable.bg_rank_top : R.drawable.bg_rank);
         h.rank.setTextColor(top3 ? Color.WHITE
-                : ContextCompat.getColor(h.rank.getContext(), R.color.splash_logo));
-        h.category.setText(item.category);
+                : ContextCompat.getColor(h.rank.getContext(), R.color.brand_text));
         h.title.setText(item.title);
         h.price.setText(item.price > 0 ? won.format(item.price) + "원" : "가격 정보 없음");
-
-        // AI 이유와 태그는 서버의 AI 호출이 실패하면 비어서 온다 → 비면 숨김
-        setOrHide(h.reason, item.reason);
-        setOrHide(h.tag, item.tag);
 
         Glide.with(h.image).load(item.image).centerInside().into(h.image);
 
         h.itemView.setOnClickListener(v -> listener.onClick(item));
-    }
-
-    private void setOrHide(TextView view, String text) {
-        if (text == null || text.trim().isEmpty()) {
-            view.setVisibility(View.GONE);
-        } else {
-            view.setVisibility(View.VISIBLE);
-            view.setText(text);
-        }
     }
 
     @Override
@@ -87,18 +73,15 @@ public class TrendAdapter extends RecyclerView.Adapter<TrendAdapter.Holder> {
     }
 
     static class Holder extends RecyclerView.ViewHolder {
-        final TextView rank, category, title, price, reason, tag;
+        final TextView rank, title, price;
         final ImageView image;
 
         Holder(@NonNull View v) {
             super(v);
             rank = v.findViewById(R.id.trend_rank);
             image = v.findViewById(R.id.trend_image);
-            category = v.findViewById(R.id.trend_category);
             title = v.findViewById(R.id.trend_title);
             price = v.findViewById(R.id.trend_price);
-            reason = v.findViewById(R.id.trend_reason);
-            tag = v.findViewById(R.id.trend_tag);
         }
     }
 }

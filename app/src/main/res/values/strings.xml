@@ -6,9 +6,8 @@
     <string name="home_trend_loading">트렌드를 분석하는 중…</string>
     <string name="home_trend_failed">트렌드를 불러오지 못했어요.</string>
     <string name="home_trend_empty">표시할 트렌드가 없어요.</string>
-    <string name="home_greeting">지금 사도 될까요?\n가격부터 확인해 보세요</string>
+    <string name="home_greeting">지금 사도 될까요?</string>
     <string name="home_category_title">품목별로 보기</string>
-    <string name="home_trend_subtitle">AI가 분석한 지금 관심이 높은 가전이에요</string>
     <string name="home_trend_stale">최신 트렌드를 불러오지 못해 지난 목록을 보여 드려요.</string>
     <string name="home_search_hint">모델명이나 품목을 검색하세요</string>
     <string name="search">검색</string>
@@ -164,4 +163,12 @@
     <string name="onboarding_title_3">원하는 가격이 되면 알려드려요</string>
     <string name="onboarding_desc_3">목표 가격을 등록하면 하루 한 번 확인해서
 가격이 내려가면 알림을 보내드려요</string>
+    <string name="product_searching">‘%1$s’ 검색하는 중…</string>
+    <string name="drawer_open">메뉴 열기</string>
+    <string name="drawer_close">메뉴 닫기</string>
+    <string name="drawer_products">제품 둘러보기</string>
+    <string name="drawer_products_open">제품 둘러보기  ▾</string>
+    <string name="drawer_products_close">제품 둘러보기  ▴</string>
+    <string name="drawer_guest">로그인하고 가격 알림 받기 ›</string>
+    <string name="drawer_user">%1$s님 ›</string>
 </resources>

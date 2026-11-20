@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gajeontiming.R;
+import com.example.gajeontiming.ui.Pulse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,10 +72,10 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.Holder> {
         }
         if (m.type == ChatMessage.TYPING) {
             h.text.setText(R.string.chat_typing);
-            h.text.setAlpha(0.6f);
+            Pulse.start(h.text);   // 답변을 기다리는 동안 말풍선이 천천히 깜빡인다
         } else {
+            Pulse.stop(h.text);
             h.text.setText(MiniMarkdown.render(m.content));
-            h.text.setAlpha(1f);
         }
         if (h.sources != null) {
             boolean has = m.type == ChatMessage.AI && m.sources != null && !m.sources.isEmpty();
@@ -85,6 +86,13 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.Holder> {
                 h.sources.setOnClickListener(v -> sourcesClick.onClick(m));
             }
         }
+    }
+
+    /** 화면 밖으로 나가 재사용되는 말풍선은 깜빡임을 멈춘다 */
+    @Override
+    public void onViewRecycled(@NonNull Holder h) {
+        Pulse.stop(h.text);
+        super.onViewRecycled(h);
     }
 
     @Override

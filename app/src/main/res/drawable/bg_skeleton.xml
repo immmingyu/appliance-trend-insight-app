@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 스켈레톤 막대: 색은 사용하는 쪽에서 backgroundTint(?attr/colorSurfaceVariant)로 입힌다 (다크 모드 대응) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFFFF" />
+    <corners android:radius="6dp" />
+</shape>

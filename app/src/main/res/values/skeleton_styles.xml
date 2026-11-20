@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 스켈레톤 로딩의 회색 막대 (글자 · 이미지 자리 표시) -->
+    <style name="SkeletonBar">
+        <item name="android:background">@drawable/bg_skeleton</item>
+        <item name="android:backgroundTint">?attr/colorSurfaceVariant</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+</resources>

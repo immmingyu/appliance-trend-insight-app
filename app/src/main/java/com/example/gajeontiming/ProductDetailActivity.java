@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,9 +29,11 @@ import com.example.gajeontiming.model.ReportResponse;
 import com.example.gajeontiming.model.ReportResponse.NewsItem;
 import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.network.ApiClient;
+import com.example.gajeontiming.scan.ModelNameExtractor;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -196,7 +199,9 @@ public class ProductDetailActivity extends AppCompatActivity {
         aiContent.setVisibility(View.GONE);
         reviewEmpty.setText(R.string.detail_review_loading);
 
-        aiCall = ApiClient.get().getAiAnalysis(product.title);
+        // 제목에 모델명이 있으면 모델명만 보낸다 (제목 전체로는 엉뚱한 후기가 섞여 분석이 부정확해진다)
+        String model = ModelNameExtractor.modelFromTitle(product.title);
+        aiCall = ApiClient.get().getAiAnalysis(model != null ? model : product.title);
         aiCall.enqueue(new Callback<AiAnalysisResponse>() {
             @Override
             public void onResponse(@NonNull Call<AiAnalysisResponse> call,
@@ -273,6 +278,7 @@ public class ProductDetailActivity extends AppCompatActivity {
             reviewEmpty.setVisibility(View.VISIBLE);
             return;
         }
+        reviews = preferSameModel(reviews);
         reviewEmpty.setVisibility(View.GONE);
         for (int i = 0; i < Math.min(MAX_REVIEWS, reviews.size()); i++) {
             Review r = reviews.get(i);
@@ -320,15 +326,38 @@ public class ProductDetailActivity extends AppCompatActivity {
     // ── 공통 도우미 ───────────────────────────────────────────
 
     /** 후기 · 뉴스 한 줄(item_link_row.xml)을 만들어 붙인다. 누르면 원문 링크를 연다. */
+    /**
+     * 모델명을 알면 그 모델(같은 계열: 앞 6자)을 언급한 후기만 보여 준다.
+     * 서버가 다른 모델 · 광고 글을 섞어 보내는 경우가 있어서다. 하나도 없으면 받은 그대로 보여 준다.
+     */
+    private List<Review> preferSameModel(List<Review> reviews) {
+        String model = ModelNameExtractor.modelFromTitle(product.title);
+        if (model == null) return reviews;
+        String family = model.substring(0, 6);
+        List<Review> same = new ArrayList<>();
+        for (Review r : reviews) {
+            String text = ((r.title == null ? "" : r.title) + " " + (r.review == null ? "" : r.review))
+                    .toUpperCase(Locale.ROOT).replace(" ", "");
+            if (text.contains(family)) same.add(r);
+        }
+        return same.isEmpty() ? reviews : same;
+    }
+
     private void addLinkRow(LinearLayout container, String top, String title, String body, String link) {
         View row = LayoutInflater.from(this).inflate(R.layout.item_link_row, container, false);
         setOrHide(row.findViewById(R.id.row_top), top);
-        setOrHide(row.findViewById(R.id.row_title), title);
-        setOrHide(row.findViewById(R.id.row_body), body);
+        setOrHide(row.findViewById(R.id.row_title), decodeHtml(title));
+        setOrHide(row.findViewById(R.id.row_body), decodeHtml(body));
         if (notEmpty(link)) {
             row.setOnClickListener(v -> openLink(link));
         }
         container.addView(row);
+    }
+
+    /** 서버가 보낸 후기 · 뉴스 제목의 &quot; &amp; 같은 HTML 글자와 <b> 태그를 보통 글자로 바꾼다 */
+    private static String decodeHtml(String text) {
+        if (text == null) return null;
+        return Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString().trim();
     }
 
     private void setBullets(int labelId, int textId, List<String> lines) {
