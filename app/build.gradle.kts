@@ -51,5 +51,7 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("androidx.work:work-runtime:2.9.1")
+    implementation("androidx.core:core-splashscreen:1.0.1")   // F-01 시작 화면
+    implementation("androidx.viewpager2:viewpager2:1.1.0")    // 앱 소개 화면 넘기기
     implementation("com.google.mlkit:text-recognition-korean:16.0.1")
 }

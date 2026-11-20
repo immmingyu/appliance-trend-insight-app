@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    시작 화면 가운데 로고 (임시). 앱 이름 · 로고가 정해지면 이 파일만 바꾸면 된다.
+    시작 화면 아이콘은 가운데 지름 72dp 원 밖이 잘리므로, 그림은 가운데(30~78)에만 그린다.
+    모양: 보라색 카드 위의 "가격이 내려가는" 흰색 화살표 그래프
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 둥근 사각형 카드 -->
+    <path
+        android:fillColor="@color/splash_logo"
+        android:pathData="M42,30h24a12,12 0,0 1,12 12v24a12,12 0,0 1,-12 12h-24a12,12 0,0 1,-12 -12v-24a12,12 0,0 1,12 -12z" />
+
+    <!-- 내려가는 그래프 선 -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M40,46L50,56L57,50L68,61"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- 화살표 머리 -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,61H68V52"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

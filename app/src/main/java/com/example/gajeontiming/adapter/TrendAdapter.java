@@ -1,5 +1,6 @@
 package com.example.gajeontiming.adapter;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -52,6 +54,11 @@ public class TrendAdapter extends RecyclerView.Adapter<TrendAdapter.Holder> {
         TrendItem item = items.get(position);
 
         h.rank.setText(String.valueOf(position + 1));
+        // 1~3위는 진한 보라 동그라미에 흰 글씨, 나머지는 연보라 동그라미에 보라 글씨
+        boolean top3 = position < 3;
+        h.rank.setBackgroundResource(top3 ? R.drawable.bg_rank_top : R.drawable.bg_rank);
+        h.rank.setTextColor(top3 ? Color.WHITE
+                : ContextCompat.getColor(h.rank.getContext(), R.color.splash_logo));
         h.category.setText(item.category);
         h.title.setText(item.title);
         h.price.setText(item.price > 0 ? won.format(item.price) + "원" : "가격 정보 없음");

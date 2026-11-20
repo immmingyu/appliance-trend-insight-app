@@ -1,13 +1,15 @@
 <resources>
-    <string name="app_name">가전 구매 타이밍 알리미</string>
-    <string name="splash_waking">서버에 연결하는 중…</string>
-    <string name="splash_slow">서버를 깨우는 중이에요. 처음에는 최대 1분 걸릴 수 있어요.</string>
-    <string name="splash_failed">서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.</string>
+    <string name="app_name">가전무쌍</string>
+    <string name="home_server_waking">서버를 깨우는 중이에요. 처음에는 최대 1분 걸릴 수 있어요.</string>
     <string name="retry">다시 시도</string>
     <string name="home_trend_title">지금 많이 찾는 가전 TOP 10</string>
     <string name="home_trend_loading">트렌드를 분석하는 중…</string>
     <string name="home_trend_failed">트렌드를 불러오지 못했어요.</string>
     <string name="home_trend_empty">표시할 트렌드가 없어요.</string>
+    <string name="home_greeting">지금 사도 될까요?\n가격부터 확인해 보세요</string>
+    <string name="home_category_title">품목별로 보기</string>
+    <string name="home_trend_subtitle">AI가 분석한 지금 관심이 높은 가전이에요</string>
+    <string name="home_trend_stale">최신 트렌드를 불러오지 못해 지난 목록을 보여 드려요.</string>
     <string name="home_search_hint">모델명이나 품목을 검색하세요</string>
     <string name="search">검색</string>
     <string name="sort_sim">정확도순</string>
@@ -148,4 +150,18 @@
     <string name="chat_sources_title">AI가 참고한 자료</string>
     <string name="chat_new">새 대화</string>
     <string name="detail_ask_ai">이 제품에 대해 AI에게 더 물어보기</string>
+
+    <!-- 앱 소개 (처음 실행할 때만) -->
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="onboarding_next">다음</string>
+    <string name="onboarding_start">시작하기</string>
+    <string name="onboarding_title_1">매장에서 바로 확인해요</string>
+    <string name="onboarding_desc_1">가격표 앞에서 모델명을 검색하거나 카메라로 찍으면
+지금 사도 되는 가격인지 알려드려요</string>
+    <string name="onboarding_title_2">최근 30일 가격을 한눈에</string>
+    <string name="onboarding_desc_2">최저가 그래프와 품목 평균을 비교해서
+지금이 살 때인지 판단해 드려요</string>
+    <string name="onboarding_title_3">원하는 가격이 되면 알려드려요</string>
+    <string name="onboarding_desc_3">목표 가격을 등록하면 하루 한 번 확인해서
+가격이 내려가면 알림을 보내드려요</string>
 </resources>
