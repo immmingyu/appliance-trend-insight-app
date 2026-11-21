@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private DrawerLayout drawer;
+    private boolean autoRetried;   // 트렌드를 못 받아 자동으로 한 번 다시 요청했는지
     private TextView drawerUser;   // ☰ 메뉴 맨 위 로그인 상태
     private MenuItem productsItem;   // ☰ 메뉴의 "제품 둘러보기" (누르면 카테고리가 펼쳐짐)
     private final List<MenuItem> categoryItems = new ArrayList<>();
@@ -289,7 +290,10 @@ public class MainActivity extends AppCompatActivity {
      * 서버가 잠들어 있어도 사용자는 바로 목록을 볼 수 있다.
      */
     private void loadTrend() {
-        boolean showingList = list.getVisibility() == View.VISIBLE;
+        autoRetried = false;
+        // 목록 칸이 보이는지가 아니라 실제 항목이 있는지로 판단한다
+        // (빈 목록을 "보여 주는 중"으로 착각해서 저장된 목록 · 로딩 표시 · 오류 안내가 모두 안 나오던 문제)
+        boolean showingList = hasTrendItems();
         if (!showingList) {
             TrendResponse cached = TrendCache.load(this);
             if (cached != null) {
@@ -305,7 +309,10 @@ public class MainActivity extends AppCompatActivity {
             showLoading();
             handler.postDelayed(showSlowNotice, SLOW_NOTICE_MS);
         }
+        requestTrend();
+    }
 
+    private void requestTrend() {
         ApiClient.get().getTrend(null).enqueue(new Callback<TrendResponse>() {
             @Override
             public void onResponse(@NonNull Call<TrendResponse> call,
@@ -332,12 +339,25 @@ public class MainActivity extends AppCompatActivity {
 
     /** 새 목록을 못 받았을 때: 지난 목록을 보고 있었다면 그대로 두고 짧게 알리기만 한다 */
     private void onTrendFailed(String text) {
+        if (isFinishing() || isDestroyed()) return;
+        // 보여 줄 목록이 하나도 없으면 한 번은 자동으로 다시 요청한다.
+        // 서버는 재시작 직후 첫 트렌드 계산에 90초 넘게 걸려 시간 초과가 나지만, 두 번째 요청은 금방 온다
+        if (!hasTrendItems() && !autoRetried) {
+            autoRetried = true;
+            stateText.setText(R.string.home_server_waking);
+            requestTrend();
+            return;
+        }
         finishLoading();
-        if (list.getVisibility() == View.VISIBLE) {
+        if (hasTrendItems()) {
             Toast.makeText(this, R.string.home_trend_stale, Toast.LENGTH_SHORT).show();
         } else {
             showError(text);
         }
+    }
+
+    private boolean hasTrendItems() {
+        return adapter.getItemCount() > 0;
     }
 
     private void finishLoading() {

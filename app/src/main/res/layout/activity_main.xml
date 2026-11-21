@@ -158,7 +158,8 @@
                         android:id="@+id/home_trend_list"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false" />
+                        android:nestedScrollingEnabled="false"
+                        android:visibility="gone" />
 
                     <!-- 로딩 · 오류 상태: 위에 안내 문구, 아래에 목록 모양의 빈 카드(스켈레톤) -->
                     <LinearLayout
