@@ -84,6 +84,16 @@
                                 android:layout_weight="1"
                                 android:text="@string/logout" />
                         </LinearLayout>
+
+                        <!-- 비밀번호 변경: 이메일 회원만 보인다 (소셜 회원은 비밀번호가 없음) -->
+                        <Button
+                            android:id="@+id/mypage_password"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/password_change_title"
+                            android:visibility="gone" />
                     </LinearLayout>
 
                     <!-- 로그인하지 않았을 때 -->

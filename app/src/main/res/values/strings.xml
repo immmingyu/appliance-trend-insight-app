@@ -202,4 +202,10 @@
     <string name="login_social_notice">카카오 · Google로 처음 시작하면 닉네임을 정하고 이용약관과 개인정보 수집 · 이용에 동의한 뒤 가입돼요.</string>
     <string name="withdraw_message_social">탈퇴하면 계정 정보와 등록한 가격 알림이 모두 지워지고 되돌릴 수 없어요.\n최근 본 제품은 이 휴대폰에만 저장돼 있어서 그대로 남아요.\n\n확인을 위해 \'탈퇴\'라고 입력해 주세요.</string>
     <string name="withdraw_confirm_hint">탈퇴</string>
+    <string name="password_change_title">비밀번호 변경</string>
+    <string name="password_change_intro">지금 비밀번호를 확인한 뒤 새 비밀번호로 바꿔요.</string>
+    <string name="hint_current_password">지금 비밀번호</string>
+    <string name="hint_new_password_confirm">새 비밀번호 확인</string>
+    <string name="password_change_submit">비밀번호 바꾸기</string>
+    <string name="password_change_forgot">비밀번호가 기억나지 않으면 웹사이트의 \'비밀번호 찾기\'로 새로 만들 수 있어요.</string>
 </resources>

@@ -52,7 +52,7 @@ public class MyPageActivity extends AppCompatActivity {
     private RecyclerView recentList;
     private TextView recentEmpty;
     private Button recentClear;
-    private Button withdrawButton;
+    private Button withdrawButton, passwordButton;
     private RecentAdapter recentAdapter;
     private Call<UserProfile> meCall;
 
@@ -85,6 +85,9 @@ public class MyPageActivity extends AppCompatActivity {
         recentClear.setOnClickListener(v -> confirmClearRecent());
         withdrawButton = findViewById(R.id.mypage_withdraw);
         withdrawButton.setOnClickListener(v -> onWithdraw());
+        passwordButton = findViewById(R.id.mypage_password);
+        passwordButton.setOnClickListener(v ->
+                startActivity(new Intent(this, ChangePasswordActivity.class)));
         setupInfo();
 
         recentAdapter = new RecentAdapter(false, entry -> {
@@ -111,6 +114,8 @@ public class MyPageActivity extends AppCompatActivity {
     private void bindAccount() {
         boolean loggedIn = SessionManager.isLoggedIn();
         withdrawButton.setVisibility(loggedIn ? View.VISIBLE : View.GONE);
+        boolean emailMember = loggedIn && SessionManager.getProvider() == null;
+        passwordButton.setVisibility(emailMember ? View.VISIBLE : View.GONE);
         if (!loggedIn) {
             loggedInBox.setVisibility(View.GONE);
             loggedOutBox.setVisibility(View.VISIBLE);

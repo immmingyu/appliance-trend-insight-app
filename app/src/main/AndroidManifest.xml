@@ -86,6 +86,8 @@
         <activity android:name=".LoginActivity" />
         <!-- 소셜(카카오) 첫 가입: 닉네임 · 약관 동의 후 가입 -->
         <activity android:name=".SocialSignupActivity" />
+        <!-- 비밀번호 변경 (마이페이지, 이메일 회원만) -->
+        <activity android:name=".ChangePasswordActivity" />
 
         <!-- 카카오 로그인: 카카오톡 · 카카오계정 로그인 후 이 주소(kakao{앱 키}://oauth)로 앱에 돌아온다 -->
         <activity
