@@ -24,7 +24,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.gajeontiming"
+        applicationId = "com.gajeonmusang.app"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
