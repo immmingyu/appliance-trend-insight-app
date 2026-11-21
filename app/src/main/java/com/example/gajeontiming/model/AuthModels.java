@@ -60,6 +60,18 @@ public final class AuthModels {
         public static WithdrawRequest byConfirm(String word) { return new WithdrawRequest(null, word); }
     }
 
+    /** POST /api/auth/password/change: 이메일 회원 비밀번호 변경 (소셜 회원은 서버가 400) */
+    public static class PasswordChangeRequest {
+        @SerializedName("current_password") public final String currentPassword;
+        @SerializedName("new_password") public final String newPassword;
+        @SerializedName("new_password_confirm") public final String newPasswordConfirm;
+        public PasswordChangeRequest(String currentPassword, String newPassword, String newPasswordConfirm) {
+            this.currentPassword = currentPassword;
+            this.newPassword = newPassword;
+            this.newPasswordConfirm = newPasswordConfirm;
+        }
+    }
+
     /** POST /api/auth/social/token: 카카오 액세스 토큰 · 구글 ID 토큰을 우리 로그인 토큰으로 바꾼다 */
     public static class SocialTokenRequest {
         public final String provider;   // "kakao" | "google"
