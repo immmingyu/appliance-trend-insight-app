@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.LayoutInflater;
@@ -267,7 +268,10 @@ public class MyPageActivity extends AppCompatActivity {
             ((TextView) view.findViewById(R.id.withdraw_message)).setText(R.string.withdraw_message_social);
             password.setHint(R.string.withdraw_confirm_hint);
             password.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
-            password.setAutofillHints((String[]) null);
+            // 자동 완성은 Android 8.0(API 26)부터라 그 아래에서 부르면 앱이 꺼진다 (minSdk 24)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                password.setAutofillHints((String[]) null);
+            }
         }
         TextView error = view.findViewById(R.id.withdraw_error);
         ProgressBar progress = view.findViewById(R.id.withdraw_progress);
