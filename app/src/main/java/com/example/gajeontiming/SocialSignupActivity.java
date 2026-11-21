@@ -94,10 +94,15 @@ public class SocialSignupActivity extends AppCompatActivity {
                     public void onResponse(@NonNull Call<AuthModels.AuthResponse> call,
                                            @NonNull Response<AuthModels.AuthResponse> response) {
                         AuthModels.AuthResponse body = response.body();
-                        if (!response.isSuccessful() || body == null || body.token == null) {
+                        if (!response.isSuccessful()) {
                             setLoading(false);
                             // 티켓 만료 · 동의 누락 등은 서버 안내를 그대로 보여 준다
                             showError(ApiErrors.message(response, "가입하지 못했어요. 잠시 후 다시 시도해 주세요."));
+                            return;
+                        }
+                        if (body == null || body.token == null) {   // 성공 응답인데 토큰이 없음 (서버 응답 형식 문제)
+                            setLoading(false);
+                            showError("가입 응답을 읽지 못했어요. 잠시 후 다시 시도해 주세요. (토큰 없음)");
                             return;
                         }
                         SocialSession.start(body.token, provider, nickname, () -> {
