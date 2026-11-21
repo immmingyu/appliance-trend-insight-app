@@ -6,22 +6,28 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gajeontiming.adapter.RecentAdapter;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.data.RecentProductDb;
+import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.model.UserProfile;
 import com.example.gajeontiming.network.ApiClient;
+import com.example.gajeontiming.network.ApiErrors;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.List;
@@ -238,11 +244,74 @@ public class MyPageActivity extends AppCompatActivity {
                 .show();
     }
 
-    /** 서버에 탈퇴 API가 생기면 확인 창 → 탈퇴 요청 → 로그아웃으로 바꾼다 (AppLinks.WITHDRAW_READY) */
+    // ── 회원 탈퇴 ─────────────────────────────────────────────
+
+    /**
+     * 확인 창에서 비밀번호를 받아 POST /api/auth/withdraw.
+     * 비밀번호가 틀리면 창을 닫지 않고 서버 안내("비밀번호가 올바르지 않습니다")를 창 안에 보여 준다.
+     */
     private void onWithdraw() {
-        if (!AppLinks.WITHDRAW_READY) {
-            notReady();
-        }
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_withdraw, null);
+        EditText password = view.findViewById(R.id.withdraw_password);
+        TextView error = view.findViewById(R.id.withdraw_error);
+        ProgressBar progress = view.findViewById(R.id.withdraw_progress);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.withdraw_title)
+                .setView(view)
+                .setNegativeButton("취소", null)
+                .setPositiveButton(R.string.withdraw_confirm, null)   // 눌러도 바로 닫히지 않게 아래에서 따로 연결
+                .create();
+        dialog.setOnShowListener(d -> {
+            Button confirm = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            confirm.setTextColor(ContextCompat.getColor(this, R.color.score_red));
+            confirm.setOnClickListener(v -> {
+                String pw = password.getText().toString();
+                if (pw.isEmpty()) {
+                    error.setText("비밀번호를 입력해 주세요.");
+                    error.setVisibility(View.VISIBLE);
+                    return;
+                }
+                error.setVisibility(View.GONE);
+                progress.setVisibility(View.VISIBLE);
+                confirm.setEnabled(false);
+                ApiClient.get().withdraw(new AuthModels.WithdrawRequest(pw))
+                        .enqueue(new Callback<AuthModels.MessageResponse>() {
+                            @Override
+                            public void onResponse(@NonNull Call<AuthModels.MessageResponse> call,
+                                                   @NonNull Response<AuthModels.MessageResponse> response) {
+                                progress.setVisibility(View.GONE);
+                                confirm.setEnabled(true);
+                                if (!response.isSuccessful()) {
+                                    error.setText(ApiErrors.message(response, "탈퇴하지 못했어요. 잠시 후 다시 시도해 주세요."));
+                                    error.setVisibility(View.VISIBLE);
+                                    return;
+                                }
+                                dialog.dismiss();
+                                onWithdrawn(response.body());
+                            }
+
+                            @Override
+                            public void onFailure(@NonNull Call<AuthModels.MessageResponse> call, @NonNull Throwable t) {
+                                progress.setVisibility(View.GONE);
+                                confirm.setEnabled(true);
+                                error.setText("인터넷 연결을 확인해 주세요.");
+                                error.setVisibility(View.VISIBLE);
+                            }
+                        });
+            });
+        });
+        dialog.show();
+    }
+
+    /** 탈퇴 완료: 로그인 정보와 이 계정의 알림 기록을 지우고 로그아웃 상태로 다시 그린다 */
+    private void onWithdrawn(AuthModels.MessageResponse body) {
+        SessionManager.logout();
+        // 가격 알림 "마지막으로 알린 가격" 기록 (PriceCheckWorker). 알림이 서버에서 지워졌으니 같이 비운다
+        getSharedPreferences("alert_notified", MODE_PRIVATE).edit().clear().apply();
+        String msg = body != null && body.message != null ? body.message : "탈퇴가 완료되었어요";
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+        bindAccount();
     }
 
     private void notReady() {

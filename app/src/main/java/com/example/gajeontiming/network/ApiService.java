@@ -89,6 +89,10 @@ public interface ApiService {
     @POST("api/auth/signup/b2c")
     Call<AuthModels.AuthResponse> signup(@Body AuthModels.SignupRequest body);
 
+    // 회원 탈퇴: 계정 · 가격 알림 등이 서버에서 지워지고, 기존 토큰은 이후 401이 된다
+    @POST("api/auth/withdraw")
+    Call<AuthModels.MessageResponse> withdraw(@Body AuthModels.WithdrawRequest body);
+
     // 로그인 (틀리면 401)
     @POST("api/auth/login")
     Call<AuthModels.AuthResponse> login(@Body AuthModels.LoginRequest body);

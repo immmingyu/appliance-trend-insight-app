@@ -48,6 +48,15 @@ public final class AuthModels {
         @SerializedName("company_name") public String companyName;   // 사업자 회원
     }
 
+    /**
+     * POST /api/auth/withdraw. 앱은 이메일 로그인만 있어서 비밀번호로 본인 확인을 한다.
+     * (서버는 소셜 회원이면 confirm="탈퇴"도 받지만 앱에서는 쓰지 않는다)
+     */
+    public static class WithdrawRequest {
+        public final String password;
+        public WithdrawRequest(String password) { this.password = password; }
+    }
+
     /** {"message": "..."} 형태의 단순 응답 */
     public static class MessageResponse {
         public String message;

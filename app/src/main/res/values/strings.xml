@@ -183,6 +183,10 @@
     <string name="mypage_version">앱 버전</string>
     <string name="mypage_withdraw">회원 탈퇴</string>
     <string name="mypage_not_ready">준비 중이에요</string>
+    <string name="withdraw_title">회원 탈퇴</string>
+    <string name="withdraw_message">탈퇴하면 계정 정보와 등록한 가격 알림이 모두 지워지고 되돌릴 수 없어요.\n최근 본 제품은 이 휴대폰에만 저장돼 있어서 그대로 남아요.\n\n본인 확인을 위해 비밀번호를 입력해 주세요.</string>
+    <string name="withdraw_password_hint">비밀번호</string>
+    <string name="withdraw_confirm">탈퇴하기</string>
     <string name="mypage_contact_subject">[가전무쌍] 문의</string>
     <!-- build.gradle.kts의 dependencies와 맞출 것 -->
     <string name="oss_licenses">• AndroidX (AppCompat · Activity · ConstraintLayout · RecyclerView · SwipeRefreshLayout · ViewPager2 · WorkManager · Core SplashScreen) — Apache License 2.0\n\n• Material Components for Android — Apache License 2.0\n\n• Retrofit · OkHttp (Square) — Apache License 2.0\n\n• Gson (Google) — Apache License 2.0\n\n• Glide (Bump Technologies) — BSD, part MIT and Apache License 2.0\n\n• MPAndroidChart (Philipp Jahoda) — Apache License 2.0\n\n• ML Kit 한국어 글자 인식 (Google) — ML Kit Terms of Service</string>

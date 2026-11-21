@@ -12,11 +12,5 @@ public final class AppLinks {
     public static final String TERMS_URL = "https://appliance-trend-insight.vercel.app/terms";
     /** 문의 받을 이메일 주소 */
     public static final String SUPPORT_EMAIL = null;
-    /**
-     * 회원 탈퇴. 서버에 탈퇴 API가 생기면 앱 안에서 바로 처리하도록 바꾼다.
-     * 그 전에는 false로 두고 "준비 중"으로 안내한다.
-     */
-    public static final boolean WITHDRAW_READY = false;
-
     private AppLinks() { }
 }
