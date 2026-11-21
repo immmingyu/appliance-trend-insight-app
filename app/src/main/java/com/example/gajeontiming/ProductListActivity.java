@@ -26,6 +26,7 @@ import com.example.gajeontiming.adapter.ProductAdapter;
 import com.example.gajeontiming.model.Product;
 import com.example.gajeontiming.model.ProductListResponse;
 import com.example.gajeontiming.network.ApiClient;
+import com.example.gajeontiming.network.ApiErrors;
 import com.example.gajeontiming.scan.AccessoryFilter;
 import com.example.gajeontiming.scan.ModelNameExtractor;
 import com.example.gajeontiming.scan.SearchSuggester;
@@ -340,9 +341,10 @@ public class ProductListActivity extends AppCompatActivity {
                 loading = false;
                 ProductListResponse body = response.body();
                 if (!response.isSuccessful() || body == null) {
+                    // 서버가 보낸 안내(예: 503 "상품 검색이 잠시 느려요…")가 있으면 그대로 보여 준다
                     showError(response.code() == 429
                             ? "요청이 많아요. 잠시 후 다시 시도해 주세요."
-                            : "검색 결과를 불러오지 못했어요.");
+                            : ApiErrors.message(response, "검색 결과를 불러오지 못했어요."));
                     return;
                 }
                 List<Product> items = body.items;
