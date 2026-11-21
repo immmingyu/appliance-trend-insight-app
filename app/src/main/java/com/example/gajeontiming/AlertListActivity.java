@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -68,10 +70,8 @@ public class AlertListActivity extends AppCompatActivity {
     private final ActivityResultLauncher<String> permissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             granted -> {
-                if (!granted) {
-                    Toast.makeText(this, "알림을 꺼두면 가격이 내려가도 알려드릴 수 없어요",
-                            Toast.LENGTH_LONG).show();
-                }
+                // 거절하면 위쪽 안내가 남아 있으므로 따로 토스트는 띄우지 않는다
+                updateNotifyBanner();
             });
 
     @Override
@@ -107,11 +107,46 @@ public class AlertListActivity extends AppCompatActivity {
         retryButton.setOnClickListener(v -> loadAlerts());
 
         askNotificationPermission();
+        findViewById(R.id.alert_notify_settings).setOnClickListener(v -> openNotificationSettings());
 
         if (SessionManager.isLoggedIn()) {
             loadAlerts();
         } else {
             loginLauncher.launch(new Intent(this, LoginActivity.class));
+        }
+    }
+
+    /** 설정에서 돌아왔을 때도 다시 확인한다 */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateNotifyBanner();
+    }
+
+    /**
+     * 알림이 꺼져 있으면 위쪽에 안내를 띄운다.
+     * Android 13 이상은 권한을 두 번 거절하면 요청 창이 더 이상 안 떠서, 사용자는 알림이 왜 안 오는지 모르게 된다.
+     * (권한 거절 · 설정에서 직접 끈 경우 모두 areNotificationsEnabled()가 false)
+     */
+    private void updateNotifyBanner() {
+        boolean enabled = NotificationManagerCompat.from(this).areNotificationsEnabled();
+        findViewById(R.id.alert_notify_banner).setVisibility(enabled ? View.GONE : View.VISIBLE);
+    }
+
+    /** 이 앱의 알림 설정 화면을 연다 (Android 8 미만은 앱 정보 화면) */
+    private void openNotificationSettings() {
+        Intent intent;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+        } else {
+            intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", getPackageName(), null));
+        }
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "설정 화면을 열 수 없어요", Toast.LENGTH_SHORT).show();
         }
     }
 

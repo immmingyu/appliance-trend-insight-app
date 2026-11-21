@@ -1,11 +1,15 @@
 package com.example.gajeontiming;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Patterns;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -30,7 +34,8 @@ import retrofit2.Response;
  * F-09 회원가입 화면. 세 단계로 진행한다.
  *   1단계: 이메일 입력 → 인증번호 받기
  *   2단계: 메일로 온 6자리 인증번호 확인 (10분 안에)
- *   3단계: 비밀번호 · 닉네임 입력 → 가입 (가입하면 바로 로그인 상태)
+ *   3단계: 비밀번호 · 닉네임 입력 · 약관 동의 → 가입 (가입하면 바로 로그인 상태)
+ *          이용약관 · 개인정보 수집 · 이용 동의(둘 다 필수)를 체크해야 가입 버튼이 켜진다
  * 앞 단계를 마쳐야 다음 단계 입력칸이 열린다.
  */
 public class SignUpActivity extends AppCompatActivity {
@@ -43,6 +48,8 @@ public class SignUpActivity extends AppCompatActivity {
     private View codeStep, accountStep;
     private TextView codeTimer, errorText;
     private ProgressBar progress;
+    private CheckBox agreeAll, agreeTerms, agreePrivacy;
+    private boolean syncingAgreements;   // 전체 동의 ↔ 개별 동의를 맞추는 동안 리스너가 서로 다시 부르지 않게
 
     private String verifiedEmail;    // 인증을 마친 이메일 (이후 이메일을 바꾸면 처음부터)
     private CountDownTimer timer;
@@ -76,6 +83,7 @@ public class SignUpActivity extends AppCompatActivity {
         sendCodeButton.setOnClickListener(v -> sendCode());
         verifyButton.setOnClickListener(v -> verifyCode());
         signUpButton.setOnClickListener(v -> signUp());
+        setupAgreements();
 
         codeStep.setVisibility(View.GONE);
         accountStep.setVisibility(View.GONE);
@@ -180,6 +188,54 @@ public class SignUpActivity extends AppCompatActivity {
                 });
     }
 
+    // ── 3단계: 약관 동의 ─────────────────────────────────────
+
+    private void setupAgreements() {
+        agreeAll = findViewById(R.id.signup_agree_all);
+        agreeTerms = findViewById(R.id.signup_agree_terms);
+        agreePrivacy = findViewById(R.id.signup_agree_privacy);
+
+        agreeAll.setOnCheckedChangeListener((b, checked) -> {
+            if (syncingAgreements) return;
+            syncingAgreements = true;
+            agreeTerms.setChecked(checked);
+            agreePrivacy.setChecked(checked);
+            syncingAgreements = false;
+            updateSignUpEnabled();
+        });
+        agreeTerms.setOnCheckedChangeListener((b, checked) -> onAgreementChanged());
+        agreePrivacy.setOnCheckedChangeListener((b, checked) -> onAgreementChanged());
+
+        findViewById(R.id.signup_view_terms).setOnClickListener(v -> openUrl(AppLinks.TERMS_URL));
+        findViewById(R.id.signup_view_privacy).setOnClickListener(v -> openUrl(AppLinks.PRIVACY_URL));
+        updateSignUpEnabled();
+    }
+
+    /** 개별 항목을 바꾸면 "전체 동의"를 따라 맞춘다 */
+    private void onAgreementChanged() {
+        if (syncingAgreements) return;
+        syncingAgreements = true;
+        agreeAll.setChecked(allAgreed());
+        syncingAgreements = false;
+        updateSignUpEnabled();
+    }
+
+    private boolean allAgreed() {
+        return agreeTerms.isChecked() && agreePrivacy.isChecked();
+    }
+
+    private void updateSignUpEnabled() {
+        signUpButton.setEnabled(allAgreed());
+    }
+
+    private void openUrl(String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "링크를 열 수 있는 앱이 없어요", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     // ── 3단계: 가입 ─────────────────────────────────────────
 
     private void signUp() {
@@ -203,9 +259,13 @@ public class SignUpActivity extends AppCompatActivity {
             showError("닉네임을 1~20자로 입력해 주세요.");
             return;
         }
+        if (!allAgreed()) {
+            showError("이용약관과 개인정보 수집 · 이용에 동의해 주세요.");
+            return;
+        }
 
         setLoading(true);
-        ApiClient.get().signup(new AuthModels.SignupRequest(verifiedEmail, password, nickname))
+        ApiClient.get().signup(new AuthModels.SignupRequest(verifiedEmail, password, nickname, true))
                 .enqueue(new Callback<AuthModels.AuthResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<AuthModels.AuthResponse> call,

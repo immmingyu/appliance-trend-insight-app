@@ -25,8 +25,11 @@ public final class AuthModels {
         public final String email;
         public final String password;
         public final String nickname;
-        public SignupRequest(String email, String password, String nickname) {
+        /** 이용약관 · 개인정보 수집 · 이용 동의 (필수). false면 서버가 400으로 거절한다 */
+        @SerializedName("agree_terms") public final boolean agreeTerms;
+        public SignupRequest(String email, String password, String nickname, boolean agreeTerms) {
             this.email = email; this.password = password; this.nickname = nickname;
+            this.agreeTerms = agreeTerms;
         }
     }
 

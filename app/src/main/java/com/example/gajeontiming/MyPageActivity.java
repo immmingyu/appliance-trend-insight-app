@@ -1,6 +1,9 @@
 package com.example.gajeontiming;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,7 +32,9 @@ import retrofit2.Response;
 
 /**
  * F-15 마이페이지.
- * 위: 내 정보(로그인했을 때) 또는 로그인 안내 / 아래: F-08 최근 본 제품 전체 목록.
+ * 위: 내 정보(로그인했을 때) 또는 로그인 안내 / 가운데: F-08 최근 본 제품 전체 목록
+ * 아래: 앱 정보(문의 · 개인정보처리방침 · 이용약관 · 오픈소스 라이선스 · 버전) · 회원 탈퇴.
+ * 주소 · 연락처는 AppLinks에 모아 두었다.
  * 로그인 · 회원가입 화면은 이 화면 아래 단계에 있다 (홈 → 마이페이지 → 로그인 → 회원가입).
  */
 public class MyPageActivity extends AppCompatActivity {
@@ -39,6 +44,7 @@ public class MyPageActivity extends AppCompatActivity {
     private RecyclerView recentList;
     private TextView recentEmpty;
     private Button recentClear;
+    private Button withdrawButton;
     private RecentAdapter recentAdapter;
     private Call<UserProfile> meCall;
 
@@ -69,6 +75,9 @@ public class MyPageActivity extends AppCompatActivity {
                 startActivity(new Intent(this, AlertListActivity.class)));
         findViewById(R.id.mypage_logout).setOnClickListener(v -> confirmLogout());
         recentClear.setOnClickListener(v -> confirmClearRecent());
+        withdrawButton = findViewById(R.id.mypage_withdraw);
+        withdrawButton.setOnClickListener(v -> onWithdraw());
+        setupInfo();
 
         recentAdapter = new RecentAdapter(false, entry -> {
             Intent intent = new Intent(this, ProductDetailActivity.class);
@@ -92,7 +101,9 @@ public class MyPageActivity extends AppCompatActivity {
     // ── 내 정보 ──────────────────────────────────────────────
 
     private void bindAccount() {
-        if (!SessionManager.isLoggedIn()) {
+        boolean loggedIn = SessionManager.isLoggedIn();
+        withdrawButton.setVisibility(loggedIn ? View.VISIBLE : View.GONE);
+        if (!loggedIn) {
             loggedInBox.setVisibility(View.GONE);
             loggedOutBox.setVisibility(View.VISIBLE);
             return;
@@ -151,6 +162,91 @@ public class MyPageActivity extends AppCompatActivity {
                     bindAccount();
                 })
                 .show();
+    }
+
+    // ── 앱 정보 ───────────────────────────────────────────────
+
+    private void setupInfo() {
+        infoRow(R.id.mypage_contact, R.string.mypage_contact, null, v -> openContact());
+        infoRow(R.id.mypage_privacy, R.string.mypage_privacy, null, v -> openUrl(AppLinks.PRIVACY_URL));
+        infoRow(R.id.mypage_terms, R.string.mypage_terms, null, v -> openUrl(AppLinks.TERMS_URL));
+        infoRow(R.id.mypage_licenses, R.string.mypage_licenses, null, v -> showLicenses());
+        infoRow(R.id.mypage_version, R.string.mypage_version, versionName(), null);
+    }
+
+    /** item_setting_row 한 줄에 이름 · 값 · 누를 때 동작을 넣는다 (동작이 없으면 눌리지 않게) */
+    private void infoRow(int rowId, int label, String value, View.OnClickListener click) {
+        View row = findViewById(rowId);
+        ((TextView) row.findViewById(R.id.setting_label)).setText(label);
+        TextView valueText = row.findViewById(R.id.setting_value);
+        if (value != null) {
+            valueText.setText(value);
+            valueText.setVisibility(View.VISIBLE);
+        }
+        if (click != null) {
+            row.setOnClickListener(click);
+        } else {
+            row.setClickable(false);
+            row.setBackground(null);
+        }
+    }
+
+    private String versionName() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            return "";
+        }
+    }
+
+    private void openUrl(String url) {
+        if (url == null) {
+            notReady();
+            return;
+        }
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "링크를 열 수 있는 앱이 없어요", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** 이메일 앱으로 문의 메일 쓰기 (받는 사람 · 제목 · 앱 버전을 미리 채운다) */
+    private void openContact() {
+        if (AppLinks.SUPPORT_EMAIL == null) {
+            notReady();
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"));
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{AppLinks.SUPPORT_EMAIL});
+        intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.mypage_contact_subject));
+        intent.putExtra(Intent.EXTRA_TEXT, "\n\n---\n앱 버전 " + versionName()
+                + " · Android " + android.os.Build.VERSION.RELEASE);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "메일 앱이 없어요. " + AppLinks.SUPPORT_EMAIL + "로 보내 주세요",
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void showLicenses() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.mypage_licenses)
+                .setMessage(R.string.oss_licenses)
+                .setPositiveButton("닫기", null)
+                .show();
+    }
+
+    /** 서버에 탈퇴 API가 생기면 확인 창 → 탈퇴 요청 → 로그아웃으로 바꾼다 (AppLinks.WITHDRAW_READY) */
+    private void onWithdraw() {
+        if (!AppLinks.WITHDRAW_READY) {
+            notReady();
+        }
+    }
+
+    private void notReady() {
+        Toast.makeText(this, R.string.mypage_not_ready, Toast.LENGTH_SHORT).show();
     }
 
     // ── F-08 최근 본 제품 ─────────────────────────────────────
