@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- F-09 회원가입: ① 이메일 → ② 인증번호 → ③ 비밀번호 · 닉네임 (앞 단계를 마치면 다음 칸이 열림) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
@@ -136,6 +137,14 @@
                     android:inputType="text"
                     android:maxLength="20"
                     android:minHeight="48dp" />
+
+                <!-- 약관 동의 (전체 · [필수] 이용약관 · [필수] 개인정보). 소셜 첫 가입 화면과 같이 쓴다 (auth/TermsAgreement) -->
+                <include
+                    layout="@layout/include_terms_agreement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp" />
+
 
                 <Button
                     android:id="@+id/signup_button"

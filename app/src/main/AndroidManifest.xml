@@ -84,6 +84,22 @@
 
         <!-- F-10 로그인 · F-09 회원가입 (마이페이지, 또는 로그인이 필요한 기능에서 들어옴) -->
         <activity android:name=".LoginActivity" />
+        <!-- 소셜(카카오) 첫 가입: 닉네임 · 약관 동의 후 가입 -->
+        <activity android:name=".SocialSignupActivity" />
+
+        <!-- 카카오 로그인: 카카오톡 · 카카오계정 로그인 후 이 주소(kakao{앱 키}://oauth)로 앱에 돌아온다 -->
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="oauth"
+                    android:scheme="${kakaoScheme}" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".SignUpActivity"
             android:parentActivityName=".LoginActivity" />

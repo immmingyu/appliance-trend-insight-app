@@ -21,4 +21,9 @@
     <color name="score_red">#F28B82</color>
     <color name="timing_line">#8AB4F8</color>
     <color name="timing_chart_text">#BDBDBD</color>
+
+    <!-- Google 로그인 버튼 어두운 버전 (Google 브랜드 가이드) -->
+    <color name="google_container">#131314</color>
+    <color name="google_label">#E3E3E3</color>
+    <color name="google_stroke">#8E918F</color>
 </resources>

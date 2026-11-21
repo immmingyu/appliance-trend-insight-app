@@ -17,7 +17,11 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.gajeontiming.auth.GoogleLogin;
+import com.example.gajeontiming.auth.KakaoLogin;
 import com.example.gajeontiming.auth.SessionManager;
+import com.example.gajeontiming.auth.SocialLoginCallback;
+import com.example.gajeontiming.auth.SocialSession;
 import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.network.ApiErrors;
@@ -39,7 +43,9 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar progress;
     private TextView errorText;
 
-    /** 회원가입에 성공하면 이미 로그인된 상태라 로그인 화면도 바로 닫는다 */
+    private View kakaoButton, googleButton;
+
+    /** 회원가입 · 소셜 첫 가입에 성공하면 이미 로그인된 상태라 로그인 화면도 바로 닫는다 */
     private final ActivityResultLauncher<Intent> signUpLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -70,6 +76,93 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(v -> login());
         findViewById(R.id.login_signup).setOnClickListener(v ->
                 signUpLauncher.launch(new Intent(this, SignUpActivity.class)));
+
+        kakaoButton = findViewById(R.id.login_kakao);
+        kakaoButton.setOnClickListener(v -> loginWithKakao());
+        kakaoButton.setVisibility(KakaoLogin.isConfigured() ? View.VISIBLE : View.GONE);
+        googleButton = findViewById(R.id.login_google);
+        googleButton.setOnClickListener(v -> loginWithGoogle());
+        googleButton.setVisibility(GoogleLogin.isConfigured() ? View.VISIBLE : View.GONE);
+        boolean anySocial = KakaoLogin.isConfigured() || GoogleLogin.isConfigured();
+        findViewById(R.id.login_social_box).setVisibility(anySocial ? View.VISIBLE : View.GONE);
+    }
+
+    // ── 소셜 로그인 (카카오 · Google) ──────────────────────────
+
+    /**
+     * SDK로 토큰을 받아 서버에 보낸다 → 기존 회원이면 로그인, 처음이면 가입 마무리 화면.
+     *   카카오: 카카오 SDK 액세스 토큰 / Google: Credential Manager ID 토큰
+     */
+    private void loginWithKakao() {
+        setLoading(true);
+        KakaoLogin.login(this, socialCallback("kakao"));
+    }
+
+    private void loginWithGoogle() {
+        setLoading(true);
+        GoogleLogin.login(this, socialCallback("google"));
+    }
+
+    private SocialLoginCallback socialCallback(String provider) {
+        return new SocialLoginCallback() {
+            @Override
+            public void onToken(String token) {
+                sendSocialToken(provider, token);
+            }
+
+            @Override
+            public void onCancel() {
+                setLoading(false);
+            }
+
+            @Override
+            public void onError(String message) {
+                setLoading(false);
+                showError(message);
+            }
+        };
+    }
+
+    private void sendSocialToken(String provider, String sdkToken) {
+        ApiClient.get().socialToken(new AuthModels.SocialTokenRequest(provider, sdkToken))
+                .enqueue(new Callback<AuthModels.SocialTokenResponse>() {
+                    @Override
+                    public void onResponse(@NonNull Call<AuthModels.SocialTokenResponse> call,
+                                           @NonNull Response<AuthModels.SocialTokenResponse> response) {
+                        AuthModels.SocialTokenResponse body = response.body();
+                        if (!response.isSuccessful() || body == null) {
+                            setLoading(false);
+                            // 401 토큰 검증 실패 · 403 계정 상태(승인 대기 등)는 서버 안내를 그대로
+                            showError(ApiErrors.message(response, "로그인하지 못했어요. 잠시 후 다시 시도해 주세요."));
+                            return;
+                        }
+                        if (body.token != null) {             // 기존 회원
+                            SocialSession.start(body.token, provider, null, () -> {
+                                setLoading(false);
+                                Toast.makeText(LoginActivity.this,
+                                        SessionManager.getName() + "님, 반가워요", Toast.LENGTH_SHORT).show();
+                                setResult(RESULT_OK);
+                                finish();
+                            });
+                        } else if (body.signup != null) {     // 처음 온 사람 → 닉네임 · 약관 동의
+                            setLoading(false);
+                            Intent intent = new Intent(LoginActivity.this, SocialSignupActivity.class);
+                            intent.putExtra(SocialSignupActivity.EXTRA_TICKET, body.signup);
+                            intent.putExtra(SocialSignupActivity.EXTRA_PROVIDER, provider);
+                            intent.putExtra(SocialSignupActivity.EXTRA_NAME, body.name);
+                            signUpLauncher.launch(intent);
+                        } else {
+                            setLoading(false);
+                            showError("로그인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<AuthModels.SocialTokenResponse> call, @NonNull Throwable t) {
+                        setLoading(false);
+                        showError("인터넷 연결을 확인해 주세요.");
+                    }
+                });
     }
 
     private void login() {
@@ -119,6 +212,8 @@ public class LoginActivity extends AppCompatActivity {
     private void setLoading(boolean loading) {
         progress.setVisibility(loading ? View.VISIBLE : View.GONE);
         loginButton.setEnabled(!loading);
+        if (kakaoButton != null) kakaoButton.setEnabled(!loading);
+        if (googleButton != null) googleButton.setEnabled(!loading);
         if (loading) errorText.setVisibility(View.GONE);
     }
 

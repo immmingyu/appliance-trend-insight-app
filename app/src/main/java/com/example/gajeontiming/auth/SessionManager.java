@@ -15,6 +15,7 @@ public final class SessionManager {
     private static final String KEY_TOKEN = "token";
     private static final String KEY_EMAIL = "email";
     private static final String KEY_NAME = "name";
+    private static final String KEY_PROVIDER = "provider";   // 소셜 로그인이면 "kakao" 등, 이메일 로그인이면 없음
 
     private static SharedPreferences prefs;
 
@@ -26,11 +27,27 @@ public final class SessionManager {
     }
 
     public static void save(String token, String email, String name) {
+        save(token, email, name, null);
+    }
+
+    /** provider: 소셜 로그인이면 "kakao" 등 (탈퇴 때 비밀번호 대신 "탈퇴" 입력으로 확인하는 데 쓴다) */
+    public static void save(String token, String email, String name, String provider) {
         prefs.edit()
                 .putString(KEY_TOKEN, token)
                 .putString(KEY_EMAIL, email)
                 .putString(KEY_NAME, name)
+                .putString(KEY_PROVIDER, provider)
                 .apply();
+    }
+
+    /** 서버에서 받은 최신 이메일 · 이름으로 바꾼다 (토큰 · 로그인 방식은 그대로) */
+    public static void updateProfile(String email, String name) {
+        prefs.edit().putString(KEY_EMAIL, email).putString(KEY_NAME, name).apply();
+    }
+
+    /** 소셜 로그인 방식 ("kakao" 등). 이메일 로그인이면 null */
+    public static String getProvider() {
+        return prefs == null ? null : prefs.getString(KEY_PROVIDER, null);
     }
 
     public static void logout() {

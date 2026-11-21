@@ -7,7 +7,6 @@
     <string name="home_trend_failed">트렌드를 불러오지 못했어요.</string>
     <string name="home_trend_empty">표시할 트렌드가 없어요.</string>
     <string name="home_greeting">지금 사도 될까요?</string>
-    <string name="home_category_title">품목별로 보기</string>
     <string name="home_trend_stale">최신 트렌드를 불러오지 못해 지난 목록을 보여 드려요.</string>
     <string name="home_search_hint">모델명이나 품목을 검색하세요</string>
     <string name="search">검색</string>
@@ -77,6 +76,10 @@
     <string name="hint_password_confirm">비밀번호 확인</string>
     <string name="hint_nickname">닉네임</string>
     <string name="signup_submit">가입하기</string>
+    <string name="signup_agree_all">전체 동의</string>
+    <string name="signup_agree_terms">[필수] 이용약관 동의</string>
+    <string name="signup_agree_privacy">[필수] 개인정보 수집 · 이용 동의</string>
+    <string name="signup_view">보기</string>
     <string name="ai_compare_title">AI 장단점 비교</string>
     <string name="ai_compare_button">AI로 두 제품 비교하기</string>
     <string name="ai_compare_again">다시 비교하기</string>
@@ -165,7 +168,6 @@
 가격이 내려가면 알림을 보내드려요</string>
     <string name="product_searching">‘%1$s’ 검색하는 중…</string>
     <string name="drawer_open">메뉴 열기</string>
-    <string name="drawer_close">메뉴 닫기</string>
     <string name="drawer_products">제품 둘러보기</string>
     <string name="drawer_products_open">제품 둘러보기  ▾</string>
     <string name="drawer_products_close">제품 둘러보기  ▴</string>
@@ -173,4 +175,31 @@
     <string name="drawer_user">%1$s님 ›</string>
     <string name="browse_hint">%1$s 중에서 검색 (예: 무풍, 21평)</string>
     <string name="brand_all">전체</string>
+    <string name="mypage_info_title">앱 정보</string>
+    <string name="mypage_contact">문의하기</string>
+    <string name="mypage_privacy">개인정보처리방침</string>
+    <string name="mypage_terms">이용약관</string>
+    <string name="mypage_licenses">오픈소스 라이선스</string>
+    <string name="mypage_version">앱 버전</string>
+    <string name="mypage_withdraw">회원 탈퇴</string>
+    <string name="mypage_not_ready">준비 중이에요</string>
+    <string name="withdraw_title">회원 탈퇴</string>
+    <string name="withdraw_message">탈퇴하면 계정 정보와 등록한 가격 알림이 모두 지워지고 되돌릴 수 없어요.\n최근 본 제품은 이 휴대폰에만 저장돼 있어서 그대로 남아요.\n\n본인 확인을 위해 비밀번호를 입력해 주세요.</string>
+    <string name="withdraw_password_hint">비밀번호</string>
+    <string name="withdraw_confirm">탈퇴하기</string>
+    <string name="mypage_contact_subject">[가전무쌍] 문의</string>
+    <!-- build.gradle.kts의 dependencies와 맞출 것 -->
+    <string name="oss_licenses">• AndroidX (AppCompat · Activity · ConstraintLayout · RecyclerView · SwipeRefreshLayout · ViewPager2 · WorkManager · Core SplashScreen) — Apache License 2.0\n\n• Material Components for Android — Apache License 2.0\n\n• Retrofit · OkHttp (Square) — Apache License 2.0\n\n• Gson (Google) — Apache License 2.0\n\n• Glide (Bump Technologies) — BSD, part MIT and Apache License 2.0\n\n• MPAndroidChart (Philipp Jahoda) — Apache License 2.0\n\n• ML Kit 한국어 글자 인식 (Google) — ML Kit Terms of Service</string>
+    <string name="alert_notify_off">알림이 꺼져 있어서 가격이 내려가도 알림을 받을 수 없어요.</string>
+    <string name="alert_notify_settings">설정 열기</string>
+    <string name="social_title">가입 마무리</string>
+    <string name="social_intro">%1$s 계정으로 처음 오셨어요.\n닉네임을 정하고 약관에 동의하면 가입이 끝나요.</string>
+    <string name="social_nickname_label">닉네임</string>
+    <string name="social_submit">동의하고 시작하기</string>
+    <string name="login_or">또는</string>
+    <string name="login_kakao">카카오 로그인</string>
+    <string name="login_google">Google로 로그인</string>
+    <string name="login_social_notice">카카오 · Google로 처음 시작하면 닉네임을 정하고 이용약관과 개인정보 수집 · 이용에 동의한 뒤 가입돼요.</string>
+    <string name="withdraw_message_social">탈퇴하면 계정 정보와 등록한 가격 알림이 모두 지워지고 되돌릴 수 없어요.\n최근 본 제품은 이 휴대폰에만 저장돼 있어서 그대로 남아요.\n\n확인을 위해 \'탈퇴\'라고 입력해 주세요.</string>
+    <string name="withdraw_confirm_hint">탈퇴</string>
 </resources>

@@ -19,6 +19,38 @@
         android:text="@string/alert_intro"
         android:textSize="13sp" />
 
+    <!-- 휴대폰에서 이 앱의 알림이 꺼져 있을 때만 보임 (AlertListActivity.updateNotifyBanner) -->
+    <LinearLayout
+        android:id="@+id/alert_notify_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/notice_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="4dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingVertical="10dp"
+            android:text="@string/alert_notify_off"
+            android:textColor="@color/notice_text"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/alert_notify_settings"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/alert_notify_settings"
+            android:textColor="@color/notice_text" />
+    </LinearLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

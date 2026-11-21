@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.gajeontiming.auth.SessionManager;
+import com.example.gajeontiming.auth.TermsAgreement;
 import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.network.ApiErrors;
@@ -30,7 +31,8 @@ import retrofit2.Response;
  * F-09 회원가입 화면. 세 단계로 진행한다.
  *   1단계: 이메일 입력 → 인증번호 받기
  *   2단계: 메일로 온 6자리 인증번호 확인 (10분 안에)
- *   3단계: 비밀번호 · 닉네임 입력 → 가입 (가입하면 바로 로그인 상태)
+ *   3단계: 비밀번호 · 닉네임 입력 · 약관 동의 → 가입 (가입하면 바로 로그인 상태)
+ *          이용약관 · 개인정보 수집 · 이용 동의(둘 다 필수)를 체크해야 가입 버튼이 켜진다
  * 앞 단계를 마쳐야 다음 단계 입력칸이 열린다.
  */
 public class SignUpActivity extends AppCompatActivity {
@@ -43,6 +45,7 @@ public class SignUpActivity extends AppCompatActivity {
     private View codeStep, accountStep;
     private TextView codeTimer, errorText;
     private ProgressBar progress;
+    private TermsAgreement agreement;
 
     private String verifiedEmail;    // 인증을 마친 이메일 (이후 이메일을 바꾸면 처음부터)
     private CountDownTimer timer;
@@ -76,6 +79,9 @@ public class SignUpActivity extends AppCompatActivity {
         sendCodeButton.setOnClickListener(v -> sendCode());
         verifyButton.setOnClickListener(v -> verifyCode());
         signUpButton.setOnClickListener(v -> signUp());
+        // 두 필수 약관에 모두 동의해야 가입 버튼이 켜진다
+        agreement = new TermsAgreement(this, () -> signUpButton.setEnabled(agreement.allAgreed()));
+        signUpButton.setEnabled(false);
 
         codeStep.setVisibility(View.GONE);
         accountStep.setVisibility(View.GONE);
@@ -203,9 +209,13 @@ public class SignUpActivity extends AppCompatActivity {
             showError("닉네임을 1~20자로 입력해 주세요.");
             return;
         }
+        if (!agreement.allAgreed()) {
+            showError("이용약관과 개인정보 수집 · 이용에 동의해 주세요.");
+            return;
+        }
 
         setLoading(true);
-        ApiClient.get().signup(new AuthModels.SignupRequest(verifiedEmail, password, nickname))
+        ApiClient.get().signup(new AuthModels.SignupRequest(verifiedEmail, password, nickname, true))
                 .enqueue(new Callback<AuthModels.AuthResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<AuthModels.AuthResponse> call,
