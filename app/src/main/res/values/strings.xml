@@ -192,4 +192,14 @@
     <string name="oss_licenses">• AndroidX (AppCompat · Activity · ConstraintLayout · RecyclerView · SwipeRefreshLayout · ViewPager2 · WorkManager · Core SplashScreen) — Apache License 2.0\n\n• Material Components for Android — Apache License 2.0\n\n• Retrofit · OkHttp (Square) — Apache License 2.0\n\n• Gson (Google) — Apache License 2.0\n\n• Glide (Bump Technologies) — BSD, part MIT and Apache License 2.0\n\n• MPAndroidChart (Philipp Jahoda) — Apache License 2.0\n\n• ML Kit 한국어 글자 인식 (Google) — ML Kit Terms of Service</string>
     <string name="alert_notify_off">알림이 꺼져 있어서 가격이 내려가도 알림을 받을 수 없어요.</string>
     <string name="alert_notify_settings">설정 열기</string>
+    <string name="social_title">가입 마무리</string>
+    <string name="social_intro">%1$s 계정으로 처음 오셨어요.\n닉네임을 정하고 약관에 동의하면 가입이 끝나요.</string>
+    <string name="social_nickname_label">닉네임</string>
+    <string name="social_submit">동의하고 시작하기</string>
+    <string name="login_or">또는</string>
+    <string name="login_kakao">카카오 로그인</string>
+    <string name="login_google">Google로 로그인</string>
+    <string name="login_social_notice">카카오 · Google로 처음 시작하면 닉네임을 정하고 이용약관과 개인정보 수집 · 이용에 동의한 뒤 가입돼요.</string>
+    <string name="withdraw_message_social">탈퇴하면 계정 정보와 등록한 가격 알림이 모두 지워지고 되돌릴 수 없어요.\n최근 본 제품은 이 휴대폰에만 저장돼 있어서 그대로 남아요.\n\n확인을 위해 \'탈퇴\'라고 입력해 주세요.</string>
+    <string name="withdraw_confirm_hint">탈퇴</string>
 </resources>

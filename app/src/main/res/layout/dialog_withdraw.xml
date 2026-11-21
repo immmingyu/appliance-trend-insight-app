@@ -8,6 +8,7 @@
     android:paddingTop="8dp">
 
     <TextView
+        android:id="@+id/withdraw_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:lineSpacingExtra="3dp"

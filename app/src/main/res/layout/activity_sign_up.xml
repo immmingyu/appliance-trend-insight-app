@@ -138,81 +138,13 @@
                     android:maxLength="20"
                     android:minHeight="48dp" />
 
-                <!-- 약관 동의: 두 필수 항목을 모두 체크해야 가입 버튼이 켜진다 (SignUpActivity.setupAgreements) -->
-                <com.google.android.material.card.MaterialCardView
+                <!-- 약관 동의 (전체 · [필수] 이용약관 · [필수] 개인정보). 소셜 첫 가입 화면과 같이 쓴다 (auth/TermsAgreement) -->
+                <include
+                    layout="@layout/include_terms_agreement"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="?attr/colorOutlineVariant"
-                    app:strokeWidth="1dp">
+                    android:layout_marginTop="16dp" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="4dp">
-
-                        <CheckBox
-                            android:id="@+id/signup_agree_all"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:minHeight="48dp"
-                            android:text="@string/signup_agree_all"
-                            android:textStyle="bold" />
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="?attr/colorOutlineVariant" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <CheckBox
-                                android:id="@+id/signup_agree_terms"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:minHeight="48dp"
-                                android:text="@string/signup_agree_terms" />
-
-                            <Button
-                                android:id="@+id/signup_view_terms"
-                                style="@style/Widget.Material3.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/signup_view" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <CheckBox
-                                android:id="@+id/signup_agree_privacy"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:minHeight="48dp"
-                                android:text="@string/signup_agree_privacy" />
-
-                            <Button
-                                android:id="@+id/signup_view_privacy"
-                                style="@style/Widget.Material3.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/signup_view" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
 
                 <Button
                     android:id="@+id/signup_button"

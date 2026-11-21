@@ -49,12 +49,45 @@ public final class AuthModels {
     }
 
     /**
-     * POST /api/auth/withdraw. 앱은 이메일 로그인만 있어서 비밀번호로 본인 확인을 한다.
-     * (서버는 소셜 회원이면 confirm="탈퇴"도 받지만 앱에서는 쓰지 않는다)
+     * POST /api/auth/withdraw. 이메일 회원은 비밀번호, 소셜 회원은 confirm="탈퇴"로 본인 확인을 한다.
+     * 쓰지 않는 쪽은 null (Gson은 null 필드를 보내지 않는다)
      */
     public static class WithdrawRequest {
         public final String password;
-        public WithdrawRequest(String password) { this.password = password; }
+        public final String confirm;
+        private WithdrawRequest(String password, String confirm) { this.password = password; this.confirm = confirm; }
+        public static WithdrawRequest byPassword(String password) { return new WithdrawRequest(password, null); }
+        public static WithdrawRequest byConfirm(String word) { return new WithdrawRequest(null, word); }
+    }
+
+    /** POST /api/auth/social/token: 카카오 액세스 토큰 · 구글 ID 토큰을 우리 로그인 토큰으로 바꾼다 */
+    public static class SocialTokenRequest {
+        public final String provider;   // "kakao" | "google"
+        public final String token;
+        public SocialTokenRequest(String provider, String token) { this.provider = provider; this.token = token; }
+    }
+
+    /**
+     * /api/auth/social/token 응답. 둘 중 하나가 온다.
+     *   기존 회원: token · user_type → 바로 로그인
+     *   처음 온 사람: signup(가입 티켓, 15분) · provider · name → 약관 동의 화면(SocialSignupActivity)
+     */
+    public static class SocialTokenResponse {
+        public String token;
+        @SerializedName("user_type") public String userType;
+        public String signup;
+        public String provider;
+        public String name;
+    }
+
+    /** POST /api/auth/social/complete: 소셜 첫 가입 마무리 (약관 동의 필수). 응답은 AuthResponse(token · user_type) */
+    public static class SocialCompleteRequest {
+        public final String ticket;
+        @SerializedName("agree_terms") public final boolean agreeTerms;
+        public final String nickname;
+        public SocialCompleteRequest(String ticket, boolean agreeTerms, String nickname) {
+            this.ticket = ticket; this.agreeTerms = agreeTerms; this.nickname = nickname;
+        }
     }
 
     /** {"message": "..."} 형태의 단순 응답 */

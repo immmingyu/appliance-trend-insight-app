@@ -22,6 +22,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gajeontiming.adapter.RecentAdapter;
+import com.example.gajeontiming.auth.GoogleLogin;
+import com.example.gajeontiming.auth.KakaoLogin;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.data.RecentProductDb;
 import com.example.gajeontiming.model.AuthModels;
@@ -163,6 +165,7 @@ public class MyPageActivity extends AppCompatActivity {
                 .setMessage("로그아웃할까요?")
                 .setNegativeButton("취소", null)
                 .setPositiveButton("로그아웃", (d, w) -> {
+                    signOutSocial();   // 이 기기의 카카오 · Google 로그인 정보도 정리
                     SessionManager.logout();
                     Toast.makeText(this, "로그아웃했어요", Toast.LENGTH_SHORT).show();
                     bindAccount();
@@ -247,12 +250,20 @@ public class MyPageActivity extends AppCompatActivity {
     // ── 회원 탈퇴 ─────────────────────────────────────────────
 
     /**
-     * 확인 창에서 비밀번호를 받아 POST /api/auth/withdraw.
-     * 비밀번호가 틀리면 창을 닫지 않고 서버 안내("비밀번호가 올바르지 않습니다")를 창 안에 보여 준다.
+     * 확인 창에서 본인 확인을 받아 POST /api/auth/withdraw.
+     *   이메일 회원: 비밀번호 / 소셜 회원(카카오 등): '탈퇴' 입력 (비밀번호가 없어서)
+     * 틀리면 창을 닫지 않고 서버 안내("비밀번호가 올바르지 않습니다" 등)를 창 안에 보여 준다.
      */
     private void onWithdraw() {
+        boolean social = SessionManager.getProvider() != null;
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_withdraw, null);
         EditText password = view.findViewById(R.id.withdraw_password);
+        if (social) {
+            ((TextView) view.findViewById(R.id.withdraw_message)).setText(R.string.withdraw_message_social);
+            password.setHint(R.string.withdraw_confirm_hint);
+            password.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+            password.setAutofillHints((String[]) null);
+        }
         TextView error = view.findViewById(R.id.withdraw_error);
         ProgressBar progress = view.findViewById(R.id.withdraw_progress);
 
@@ -267,15 +278,18 @@ public class MyPageActivity extends AppCompatActivity {
             confirm.setTextColor(ContextCompat.getColor(this, R.color.score_red));
             confirm.setOnClickListener(v -> {
                 String pw = password.getText().toString();
-                if (pw.isEmpty()) {
-                    error.setText("비밀번호를 입력해 주세요.");
+                if (pw.trim().isEmpty()) {
+                    error.setText(social ? "'탈퇴'라고 입력해 주세요." : "비밀번호를 입력해 주세요.");
                     error.setVisibility(View.VISIBLE);
                     return;
                 }
                 error.setVisibility(View.GONE);
                 progress.setVisibility(View.VISIBLE);
                 confirm.setEnabled(false);
-                ApiClient.get().withdraw(new AuthModels.WithdrawRequest(pw))
+                AuthModels.WithdrawRequest req = social
+                        ? AuthModels.WithdrawRequest.byConfirm(pw.trim())
+                        : AuthModels.WithdrawRequest.byPassword(pw);
+                ApiClient.get().withdraw(req)
                         .enqueue(new Callback<AuthModels.MessageResponse>() {
                             @Override
                             public void onResponse(@NonNull Call<AuthModels.MessageResponse> call,
@@ -306,6 +320,7 @@ public class MyPageActivity extends AppCompatActivity {
 
     /** 탈퇴 완료: 로그인 정보와 이 계정의 알림 기록을 지우고 로그아웃 상태로 다시 그린다 */
     private void onWithdrawn(AuthModels.MessageResponse body) {
+        signOutSocial();
         SessionManager.logout();
         // 가격 알림 "마지막으로 알린 가격" 기록 (PriceCheckWorker). 알림이 서버에서 지워졌으니 같이 비운다
         getSharedPreferences("alert_notified", MODE_PRIVATE).edit().clear().apply();
@@ -316,6 +331,13 @@ public class MyPageActivity extends AppCompatActivity {
 
     private void notReady() {
         Toast.makeText(this, R.string.mypage_not_ready, Toast.LENGTH_SHORT).show();
+    }
+
+    /** 소셜 로그인했으면 그 SDK의 로그인 정보도 지운다 (다음에 다른 계정을 고를 수 있게) */
+    private void signOutSocial() {
+        String provider = SessionManager.getProvider();
+        if ("kakao".equals(provider)) KakaoLogin.logout();
+        else if ("google".equals(provider)) GoogleLogin.logout(this);
     }
 
     // ── F-08 최근 본 제품 ─────────────────────────────────────

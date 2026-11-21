@@ -93,6 +93,14 @@ public interface ApiService {
     @POST("api/auth/withdraw")
     Call<AuthModels.MessageResponse> withdraw(@Body AuthModels.WithdrawRequest body);
 
+    // 앱 소셜 로그인: SDK 토큰 → 기존 회원이면 로그인 토큰, 처음이면 가입 티켓
+    @POST("api/auth/social/token")
+    Call<AuthModels.SocialTokenResponse> socialToken(@Body AuthModels.SocialTokenRequest body);
+
+    // 소셜 첫 가입 마무리 (가입 티켓 + 약관 동의 + 닉네임)
+    @POST("api/auth/social/complete")
+    Call<AuthModels.AuthResponse> socialComplete(@Body AuthModels.SocialCompleteRequest body);
+
     // 로그인 (틀리면 401)
     @POST("api/auth/login")
     Call<AuthModels.AuthResponse> login(@Body AuthModels.LoginRequest body);

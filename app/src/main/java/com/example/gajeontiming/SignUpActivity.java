@@ -1,15 +1,11 @@
 package com.example.gajeontiming;
 
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Patterns;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -19,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.gajeontiming.auth.SessionManager;
+import com.example.gajeontiming.auth.TermsAgreement;
 import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.network.ApiErrors;
@@ -48,8 +45,7 @@ public class SignUpActivity extends AppCompatActivity {
     private View codeStep, accountStep;
     private TextView codeTimer, errorText;
     private ProgressBar progress;
-    private CheckBox agreeAll, agreeTerms, agreePrivacy;
-    private boolean syncingAgreements;   // 전체 동의 ↔ 개별 동의를 맞추는 동안 리스너가 서로 다시 부르지 않게
+    private TermsAgreement agreement;
 
     private String verifiedEmail;    // 인증을 마친 이메일 (이후 이메일을 바꾸면 처음부터)
     private CountDownTimer timer;
@@ -83,7 +79,9 @@ public class SignUpActivity extends AppCompatActivity {
         sendCodeButton.setOnClickListener(v -> sendCode());
         verifyButton.setOnClickListener(v -> verifyCode());
         signUpButton.setOnClickListener(v -> signUp());
-        setupAgreements();
+        // 두 필수 약관에 모두 동의해야 가입 버튼이 켜진다
+        agreement = new TermsAgreement(this, () -> signUpButton.setEnabled(agreement.allAgreed()));
+        signUpButton.setEnabled(false);
 
         codeStep.setVisibility(View.GONE);
         accountStep.setVisibility(View.GONE);
@@ -188,54 +186,6 @@ public class SignUpActivity extends AppCompatActivity {
                 });
     }
 
-    // ── 3단계: 약관 동의 ─────────────────────────────────────
-
-    private void setupAgreements() {
-        agreeAll = findViewById(R.id.signup_agree_all);
-        agreeTerms = findViewById(R.id.signup_agree_terms);
-        agreePrivacy = findViewById(R.id.signup_agree_privacy);
-
-        agreeAll.setOnCheckedChangeListener((b, checked) -> {
-            if (syncingAgreements) return;
-            syncingAgreements = true;
-            agreeTerms.setChecked(checked);
-            agreePrivacy.setChecked(checked);
-            syncingAgreements = false;
-            updateSignUpEnabled();
-        });
-        agreeTerms.setOnCheckedChangeListener((b, checked) -> onAgreementChanged());
-        agreePrivacy.setOnCheckedChangeListener((b, checked) -> onAgreementChanged());
-
-        findViewById(R.id.signup_view_terms).setOnClickListener(v -> openUrl(AppLinks.TERMS_URL));
-        findViewById(R.id.signup_view_privacy).setOnClickListener(v -> openUrl(AppLinks.PRIVACY_URL));
-        updateSignUpEnabled();
-    }
-
-    /** 개별 항목을 바꾸면 "전체 동의"를 따라 맞춘다 */
-    private void onAgreementChanged() {
-        if (syncingAgreements) return;
-        syncingAgreements = true;
-        agreeAll.setChecked(allAgreed());
-        syncingAgreements = false;
-        updateSignUpEnabled();
-    }
-
-    private boolean allAgreed() {
-        return agreeTerms.isChecked() && agreePrivacy.isChecked();
-    }
-
-    private void updateSignUpEnabled() {
-        signUpButton.setEnabled(allAgreed());
-    }
-
-    private void openUrl(String url) {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(this, "링크를 열 수 있는 앱이 없어요", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     // ── 3단계: 가입 ─────────────────────────────────────────
 
     private void signUp() {
@@ -259,7 +209,7 @@ public class SignUpActivity extends AppCompatActivity {
             showError("닉네임을 1~20자로 입력해 주세요.");
             return;
         }
-        if (!allAgreed()) {
+        if (!agreement.allAgreed()) {
             showError("이용약관과 개인정보 수집 · 이용에 동의해 주세요.");
             return;
         }
