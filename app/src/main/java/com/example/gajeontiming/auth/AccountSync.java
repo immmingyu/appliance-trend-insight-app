@@ -1,11 +1,16 @@
 package com.example.gajeontiming.auth;
 
+import android.app.Activity;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.gajeontiming.SplashActivity;
 import com.example.gajeontiming.model.AuthMe;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.network.AuthGuard;
+import com.example.gajeontiming.ui.B2bStatusDialog;
+import com.example.gajeontiming.ui.ForegroundTracker;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -20,7 +25,6 @@ public final class AccountSync {
 
     private static final long MIN_INTERVAL_MS = 60 * 1000;   // 화면을 오갈 때마다 부르지 않도록
     private static long lastRefreshAt;
-    private static Runnable changedListener;   // 지금 열린 홈 화면 (푸시로 상태가 바뀌면 다시 그린다)
 
     private AccountSync() { }
 
@@ -58,14 +62,40 @@ public final class AccountSync {
         });
     }
 
-    /** 홈 화면이 onResume에서 등록 · onPause에서 null로 해제 */
-    public static void setOnChangedListener(@Nullable Runnable listener) {
-        changedListener = listener;
+    private static final long PENDING_CHECK_MS = 10 * 1000;   // 승인 대기 중 화면 전환마다 묻지 않도록
+    private static long lastPendingCheckAt;
+
+    /**
+     * 앱의 어떤 화면이든 다시 보일 때 (ForegroundTracker가 부름).
+     * 백그라운드에서 승인 · 거절 푸시를 받고 돌아오면, 마지막으로 보던 화면이 홈이 아니어도 여기서 안내한다.
+     *   1) 이미 알고 있는 결과가 있으면 바로 안내 창
+     *   2) 승인 대기 · 거절 상태면 서버에 다시 물어보고(10초 간격), 바뀌었으면 안내 창 + 화면 갱신
+     */
+    public static void onScreenResumed() {
+        showStatusNotice();
+        // 승인 대기 · 거절 사업자만 (거절 후 다시 승인될 수도 있다)
+        if (!SessionManager.isB2bPending() && !SessionManager.isB2bRejected()) return;
+        long now = System.currentTimeMillis();
+        if (now - lastPendingCheckAt < PENDING_CHECK_MS) return;
+        lastPendingCheckAt = now;
+        refresh(() -> {
+            showStatusNotice();
+            notifyChanged();
+        });
     }
 
-    /** 회원 정보가 바뀌었다고 열린 화면에 알린다 (메인 스레드에서 부를 것) */
+    /** 아직 안 띄운 사업자 승인 · 거절 결과가 있으면 지금 화면에 안내 창 (시작 화면은 건너뜀) */
+    public static void showStatusNotice() {
+        Activity screen = ForegroundTracker.current();
+        if (screen == null || screen instanceof SplashActivity) return;
+        String notice = SessionManager.consumeStatusNotice();
+        if (notice != null) B2bStatusDialog.show(screen, "active".equals(notice));
+    }
+
+    /** 지금 떠 있는 화면이 회원 정보를 보여 주는 화면(홈 · 마이페이지)이면 다시 그리게 한다. 메인 스레드에서 */
     public static void notifyChanged() {
-        if (changedListener != null) changedListener.run();
+        Activity a = ForegroundTracker.current();
+        if (a instanceof AccountAware) ((AccountAware) a).onAccountChanged();
     }
 
     /** 응답을 저장한다 (마이페이지처럼 직접 /api/auth/me를 부른 화면도 이걸 쓴다) */

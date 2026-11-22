@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gajeontiming.adapter.RecentAdapter;
+import com.example.gajeontiming.auth.AccountAware;
 import com.example.gajeontiming.auth.AccountSync;
 import com.example.gajeontiming.alert.PushTokens;
 import com.example.gajeontiming.auth.GoogleLogin;
@@ -49,7 +50,7 @@ import retrofit2.Response;
  * 주소 · 연락처는 AppLinks에 모아 두었다.
  * 로그인 · 회원가입 화면은 이 화면 아래 단계에 있다 (홈 → 마이페이지 → 로그인 → 회원가입).
  */
-public class MyPageActivity extends AppCompatActivity {
+public class MyPageActivity extends AppCompatActivity implements AccountAware {
 
     private View loggedInBox, loggedOutBox;
     private TextView nameText, emailText, joinText, b2bNotice;
@@ -167,6 +168,12 @@ public class MyPageActivity extends AppCompatActivity {
                 // 저장해 둔 정보가 이미 보이므로 따로 안내하지 않는다
             }
         });
+    }
+
+    /** 승인 · 거절 푸시로 회원 정보가 바뀌었을 때: 회원 유형 · 안내를 다시 그린다 */
+    @Override
+    public void onAccountChanged() {
+        bindAccount();
     }
 
     /** 사업자 승인 대기 · 거절이면 안내를 보여 준다 (승인 전에도 개인 기능은 그대로 사용) */

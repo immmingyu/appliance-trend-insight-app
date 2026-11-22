@@ -21,8 +21,8 @@ public final class SessionManager {
     private static final String KEY_STATUS = "status";               // active | pending | rejected
     private static final String KEY_TIER = "tier";                   // free | silver | gold | platinum
     private static final String KEY_TIER_EXPIRES = "tier_expires_at";
-    // 사업자 승인 완료 안내를 아직 안 보여 줬으면 "true" (pending → active로 바뀐 걸 앱이 본 순간 켠다)
-    private static final String KEY_APPROVED_NOTICE = "approved_notice";
+    // 사업자 승인 결과 안내 창을 아직 안 띄웠으면 "active" | "rejected" (pending에서 바뀐 걸 앱이 본 순간 저장)
+    private static final String KEY_STATUS_NOTICE = "b2b_status_notice";
     // 로그인 방법 (/api/auth/me의 has_password, 모르면 없음)
     private static final String KEY_HAS_PASSWORD = "has_password";   // "true" | "false"
 
@@ -58,9 +58,12 @@ public final class SessionManager {
     /** 회원 유형 · 상태 · 구독 등급을 저장한다. null로 온 값은 지운다 (b2c는 tier가 없을 수 있음) */
     public static void saveAccount(String userType, String status, String tier, String tierExpiresAt) {
         SharedPreferences.Editor editor = prefs.edit();
-        // 승인 대기였던 사업자가 승인됨 → 다음 홈 화면에서 한 번 안내
-        if ("b2b".equals(userType) && "active".equals(status) && "pending".equals(getStatus())) {
-            editor.putBoolean(KEY_APPROVED_NOTICE, true);
+        // 사업자 상태가 승인 · 거절로 바뀜 (대기 → 승인, 대기 → 거절, 거절 → 승인 등)
+        // → 다음에 앱 화면이 뜰 때 안내 창 한 번 (AccountSync.onScreenResumed)
+        String before = getStatus();
+        if ("b2b".equals(userType) && before != null && !before.equals(status)
+                && ("active".equals(status) || "rejected".equals(status))) {
+            editor.putString(KEY_STATUS_NOTICE, status);
         }
         editor
                 .putString(KEY_USER_TYPE, userType)
@@ -98,13 +101,6 @@ public final class SessionManager {
         return isLoggedIn() && "b2b".equals(getUserType()) && "rejected".equals(getStatus());
     }
 
-    /** 사업자 승인 완료 안내를 보여 줘야 하면 true를 돌려주고 표시를 지운다 (한 번만) */
-    public static boolean consumeApprovedNotice() {
-        if (prefs == null || !prefs.getBoolean(KEY_APPROVED_NOTICE, false)) return false;
-        prefs.edit().remove(KEY_APPROVED_NOTICE).apply();
-        return true;
-    }
-
     public static String getStatus() {
         return prefs == null ? null : prefs.getString(KEY_STATUS, null);
     }
@@ -128,6 +124,13 @@ public final class SessionManager {
         String hasPassword = prefs == null ? null : prefs.getString(KEY_HAS_PASSWORD, null);
         if (hasPassword != null) return !Boolean.parseBoolean(hasPassword);
         return getProvider() != null;
+    }
+
+    /** 아직 안 띄운 사업자 승인 결과 ("active" | "rejected"). 돌려주면서 지운다 (한 번만). 없으면 null */
+    public static String consumeStatusNotice() {
+        String notice = prefs == null ? null : prefs.getString(KEY_STATUS_NOTICE, null);
+        if (notice != null) prefs.edit().remove(KEY_STATUS_NOTICE).apply();
+        return notice;
     }
 
     /** 소셜 로그인 방식 ("kakao" 등). 이메일 로그인이면 null */

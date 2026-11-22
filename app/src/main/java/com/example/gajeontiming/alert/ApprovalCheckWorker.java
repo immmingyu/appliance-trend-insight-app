@@ -77,8 +77,7 @@ public class ApprovalCheckWorker extends Worker {
             AccountSync.apply(me);
 
             if (SessionManager.isB2b()) {
-                SessionManager.consumeApprovedNotice();    // 휴대폰 알림으로 알렸으니 앱 안 안내 창은 생략
-                AlertNotifier.notifyB2bResult(context, true);
+                AlertNotifier.notifyB2bResult(context, true);   // 앱을 열면 홈에서 안내 창도 한 번 뜬다
             } else if (SessionManager.isB2bRejected()) {
                 AlertNotifier.notifyB2bResult(context, false);
             }

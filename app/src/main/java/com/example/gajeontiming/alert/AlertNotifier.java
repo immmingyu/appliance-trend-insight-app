@@ -49,6 +49,7 @@ public final class AlertNotifier {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
+            PushTokens.log("알림 권한이 없어 승인 결과 알림을 띄우지 못함");
             return;
         }
         Intent open = new Intent(context, MainActivity.class)
