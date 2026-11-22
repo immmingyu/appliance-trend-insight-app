@@ -208,4 +208,41 @@
     <string name="hint_new_password_confirm">새 비밀번호 확인</string>
     <string name="password_change_submit">비밀번호 바꾸기</string>
     <string name="password_change_forgot">비밀번호가 기억나지 않으면 웹사이트의 \'비밀번호 찾기\'로 새로 만들 수 있어요.</string>
+    <!-- 회원가입 회원 유형 (B2B 단계 1) -->
+    <string name="signup_type_personal">개인 회원</string>
+    <string name="signup_type_business">사업자 회원</string>
+    <string name="signup_business_notice">사업자 계정은 관리자 승인 후 이용할 수 있어요.\n가입 후 1~2일 안에 검토 결과를 이메일로 알려 드려요.</string>
+    <string name="signup_submit_business">가입 신청하기</string>
+    <string name="hint_company">회사명</string>
+    <string name="hint_business_type">업종</string>
+    <string name="hint_business_etc">업종 직접 입력 (50자까지)</string>
+    <string name="hint_contact_phone">담당자 연락처 (선택)</string>
+    <!-- 업종 목록: 웹 frontend/src/pages/SignUp.jsx의 BUSINESS_TYPES와 순서까지 같게 유지할 것.
+         고른 항목 이름을 그대로 business_type으로 보낸다. 마지막 "기타"는 직접 입력한 글자를 보낸다 -->
+    <string name="business_type_other">기타</string>
+    <string-array name="business_types">
+        <item>가전 유통 · 판매점</item>
+        <item>온라인 쇼핑몰</item>
+        <item>가전 제조 · 브랜드</item>
+        <item>렌탈 · 구독</item>
+        <item>설치 · 수리 · A/S</item>
+        <item>중고 · 리퍼</item>
+        <item>시장 조사 · 컨설팅</item>
+        <item>@string/business_type_other</item>
+    </string-array>
+    <!-- 사업자 승인 대기 화면 -->
+    <string name="pending_icon" translatable="false">⏳</string>
+    <string name="pending_title_signed_up">가입 신청이 접수됐어요</string>
+    <string name="pending_title_login">승인을 기다리고 있어요</string>
+    <string name="pending_body">관리자가 사업자 정보를 확인한 뒤 승인해요. 보통 1~2일 걸리고, 결과는 이메일로 알려 드려요.\n승인되면 이 이메일로 로그인해서 비즈니스 기능을 쓸 수 있어요.</string>
+    <string name="pending_body_logged_in">관리자가 사업자 정보를 확인한 뒤 승인해요. 보통 1~2일 걸리고, 결과는 이메일로 알려 드려요.\n승인 전에도 검색 · 가격 알림 · AI 추천 같은 기능은 바로 쓸 수 있어요. 승인되면 비즈니스 기능이 열리고 휴대폰 알림으로도 알려 드려요.</string>
+    <string name="b2b_pending_short">사업자 승인을 기다리는 중이에요. 그동안 개인 기능은 그대로 쓸 수 있어요.</string>
+    <string name="b2b_pending_long">사업자 승인을 기다리는 중이에요. 보통 1~2일 걸리고 결과는 이메일로 알려 드려요.\n그동안 개인 기능은 그대로 쓸 수 있어요.</string>
+    <string name="b2b_rejected">사업자 승인이 거절됐어요. 문의: gajeonmussang@gmail.com</string>
+    <string name="b2b_rejected_title">사업자 승인이 거절됐어요</string>
+    <string name="b2b_approved_title">사업자 승인이 완료됐어요</string>
+    <string name="b2b_approved_message">이제 비즈니스 기능을 쓸 수 있어요.</string>
+    <string name="pending_company">회사명</string>
+    <string name="pending_email">이메일</string>
+    <string name="pending_ok">확인</string>
 </resources>

@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.example.gajeontiming.alert.AlertNotifier;
 import com.example.gajeontiming.alert.PriceCheckWorker;
+import com.example.gajeontiming.alert.PushTokens;
 import com.example.gajeontiming.auth.KakaoLogin;
 import com.example.gajeontiming.auth.SessionManager;
 
@@ -16,5 +17,6 @@ public class GajeonApp extends Application {
         AlertNotifier.createChannel(this);       // F-12 알림 채널
         PriceCheckWorker.scheduleDaily(this);    // F-12 하루 1회 가격 확인 예약
         KakaoLogin.init(this);                   // 카카오 로그인 SDK (키가 없으면 건너뜀)
+        PushTokens.init(this);                   // FCM 푸시 (google-services.json이 없으면 꺼짐)
     }
 }

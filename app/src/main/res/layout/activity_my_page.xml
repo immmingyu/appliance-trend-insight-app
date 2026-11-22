@@ -62,6 +62,20 @@
                             android:layout_marginTop="2dp"
                             android:textSize="12sp" />
 
+                        <!-- 사업자 승인 대기 · 거절 안내 (해당할 때만) -->
+                        <TextView
+                            android:id="@+id/mypage_b2b_notice"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@color/notice_bg"
+                            android:lineSpacingExtra="2dp"
+                            android:padding="10dp"
+                            android:textColor="@color/notice_text"
+                            android:textIsSelectable="true"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

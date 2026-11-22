@@ -88,6 +88,24 @@
         <activity android:name=".SocialSignupActivity" />
         <!-- 비밀번호 변경 (마이페이지, 이메일 회원만) -->
         <activity android:name=".ChangePasswordActivity" />
+        <!-- FCM 푸시 받기 (사업자 승인 · 거절 즉시 알림) -->
+        <service
+            android:name=".alert.PushService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- 앱이 백그라운드일 때 안드로이드가 직접 띄우는 푸시 알림의 채널 · 아이콘 (AlertNotifier의 "회원 안내") -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="account" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+
+        <!-- 사업자 회원 승인 대기 안내 (B2B 단계 1) -->
+        <activity android:name=".PendingApprovalActivity" />
 
         <!-- 카카오 로그인: 카카오톡 · 카카오계정 로그인 후 이 주소(kakao{앱 키}://oauth)로 앱에 돌아온다 -->
         <activity

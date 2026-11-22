@@ -14,12 +14,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.gajeontiming.alert.ApprovalCheckWorker;
+import com.example.gajeontiming.alert.PushTokens;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.auth.TermsAgreement;
 import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.network.ApiErrors;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.button.MaterialButtonToggleGroup;
+import android.content.Intent;
 
 import java.util.Locale;
 
@@ -31,7 +36,9 @@ import retrofit2.Response;
  * F-09 회원가입 화면. 세 단계로 진행한다.
  *   1단계: 이메일 입력 → 인증번호 받기
  *   2단계: 메일로 온 6자리 인증번호 확인 (10분 안에)
+ *   맨 위: 회원 유형 선택 (개인 · 사업자)
  *   3단계: 비밀번호 · 닉네임 입력 · 약관 동의 → 가입 (가입하면 바로 로그인 상태)
+ *          사업자: 비밀번호 · 회사명 · 업종 · 연락처(선택) → 가입 신청 → 승인 대기 화면 (로그인은 승인 후)
  *          이용약관 · 개인정보 수집 · 이용 동의(둘 다 필수)를 체크해야 가입 버튼이 켜진다
  * 앞 단계를 마쳐야 다음 단계 입력칸이 열린다.
  */
@@ -40,7 +47,15 @@ public class SignUpActivity extends AppCompatActivity {
     private static final int MIN_PASSWORD = 8;
     private static final long CODE_VALID_MS = 10 * 60 * 1000;   // 서버의 인증번호 유효 시간
 
+    /** 사업자 가입 신청이 끝나면 이 결과로 닫힌다 (로그인은 되지 않음, data에 이메일) */
+    public static final int RESULT_PENDING = RESULT_FIRST_USER;
+    public static final String EXTRA_EMAIL = "email";
+
     private EditText emailInput, codeInput, passwordInput, passwordConfirmInput, nicknameInput;
+    private EditText companyInput, businessEtcInput, contactPhoneInput;
+    private MaterialAutoCompleteTextView businessTypeInput;
+    private View businessBox, businessNotice;
+    private boolean business;        // 사업자 회원으로 가입하는지
     private Button sendCodeButton, verifyButton, signUpButton;
     private View codeStep, accountStep;
     private TextView codeTimer, errorText;
@@ -76,6 +91,14 @@ public class SignUpActivity extends AppCompatActivity {
         errorText = findViewById(R.id.signup_error);
         progress = findViewById(R.id.signup_progress);
 
+        companyInput = findViewById(R.id.signup_company);
+        businessTypeInput = findViewById(R.id.signup_business_type);
+        businessEtcInput = findViewById(R.id.signup_business_etc);
+        contactPhoneInput = findViewById(R.id.signup_contact_phone);
+        businessBox = findViewById(R.id.signup_business_box);
+        businessNotice = findViewById(R.id.signup_business_notice);
+        setupMemberType();
+
         sendCodeButton.setOnClickListener(v -> sendCode());
         verifyButton.setOnClickListener(v -> verifyCode());
         signUpButton.setOnClickListener(v -> signUp());
@@ -85,6 +108,42 @@ public class SignUpActivity extends AppCompatActivity {
 
         codeStep.setVisibility(View.GONE);
         accountStep.setVisibility(View.GONE);
+    }
+
+    // ── 회원 유형: 개인 · 사업자 ─────────────────────────────
+
+    private void setupMemberType() {
+        MaterialButtonToggleGroup group = findViewById(R.id.signup_type_group);
+        group.addOnButtonCheckedListener((g, id, checked) -> {
+            if (checked) setBusiness(id == R.id.signup_type_business);
+        });
+        // 업종 "기타"를 고르면 직접 입력칸을 연다
+        businessTypeInput.setOnItemClickListener((parent, view, position, id) -> {
+            boolean other = isOtherType(businessTypeInput.getText().toString());
+            businessEtcInput.setVisibility(other ? View.VISIBLE : View.GONE);
+            if (other) businessEtcInput.requestFocus();
+        });
+        setBusiness(false);
+    }
+
+    private void setBusiness(boolean business) {
+        this.business = business;
+        businessNotice.setVisibility(business ? View.VISIBLE : View.GONE);
+        businessBox.setVisibility(business ? View.VISIBLE : View.GONE);
+        nicknameInput.setVisibility(business ? View.GONE : View.VISIBLE);
+        signUpButton.setText(business ? R.string.signup_submit_business : R.string.signup_submit);
+        errorText.setVisibility(View.GONE);
+    }
+
+    private boolean isOtherType(String type) {
+        return getString(R.string.business_type_other).equals(type);
+    }
+
+    /** 서버에 보낼 업종: 목록 항목 이름 그대로, "기타"면 직접 입력한 글자. 아직 없으면 빈 문자열 */
+    private String businessType() {
+        String selected = businessTypeInput.getText().toString().trim();
+        if (isOtherType(selected)) return businessEtcInput.getText().toString().trim();
+        return selected;
     }
 
     private String email() {
@@ -205,12 +264,16 @@ public class SignUpActivity extends AppCompatActivity {
             showError("비밀번호 확인이 일치하지 않아요.");
             return;
         }
-        if (nickname.isEmpty() || nickname.length() > 20) {
-            showError("닉네임을 1~20자로 입력해 주세요.");
-            return;
-        }
         if (!agreement.allAgreed()) {
             showError("이용약관과 개인정보 수집 · 이용에 동의해 주세요.");
+            return;
+        }
+        if (business) {
+            signUpBusiness(password);
+            return;
+        }
+        if (nickname.isEmpty() || nickname.length() > 20) {
+            showError("닉네임을 1~20자로 입력해 주세요.");
             return;
         }
 
@@ -229,6 +292,7 @@ public class SignUpActivity extends AppCompatActivity {
                         SessionManager.save(body.token, verifiedEmail, body.nickname);
                         SessionManager.saveAccount("b2c", "active", null, null);   // 개인 회원은 가입 즉시 사용
                         SessionManager.saveHasPassword(true);
+                        PushTokens.register();
                         Toast.makeText(SignUpActivity.this,
                                 nickname + "님, 가입을 환영해요", Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);
@@ -238,6 +302,71 @@ public class SignUpActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(@NonNull Call<AuthModels.AuthResponse> call, @NonNull Throwable t) {
                         setLoading(false);
+                        showError("인터넷 연결을 확인해 주세요.");
+                    }
+                });
+    }
+
+    /** 사업자 가입 신청 → 승인 대기 화면 (로그인은 관리자 승인 후) */
+    private void signUpBusiness(String password) {
+        String company = companyInput.getText().toString().trim();
+        String selected = businessTypeInput.getText().toString().trim();
+        String type = businessType();
+        String phone = contactPhoneInput.getText().toString().trim();
+
+        if (company.isEmpty()) {
+            showError("회사명을 입력해 주세요.");
+            return;
+        }
+        if (selected.isEmpty()) {
+            showError("업종을 골라 주세요.");
+            return;
+        }
+        if (type.isEmpty()) {   // "기타"를 골랐는데 비어 있음
+            showError("업종을 직접 입력해 주세요.");
+            return;
+        }
+
+        setLoading(true);
+        signUpButton.setEnabled(false);
+        ApiClient.get().signupB2b(new AuthModels.SignupB2bRequest(verifiedEmail, password, company, type, phone, true))
+                .enqueue(new Callback<AuthModels.SignupB2bResponse>() {
+                    @Override
+                    public void onResponse(@NonNull Call<AuthModels.SignupB2bResponse> call,
+                                           @NonNull Response<AuthModels.SignupB2bResponse> response) {
+                        setLoading(false);
+                        signUpButton.setEnabled(agreement.allAgreed());
+                        if (!response.isSuccessful()) {
+                            // 400 회사명 · 업종 누락, 409 이미 가입된 이메일 등은 서버 안내 그대로
+                            showError(ApiErrors.message(response, "가입 신청을 하지 못했어요."));
+                            return;
+                        }
+                        AuthModels.SignupB2bResponse body = response.body();
+                        boolean loggedIn = body != null && body.token != null;
+                        if (loggedIn) {
+                            // 승인 전에도 개인 기능은 쓸 수 있게 바로 로그인 (비즈니스 메뉴는 승인 후)
+                            SessionManager.save(body.token, verifiedEmail, company);
+                            SessionManager.saveAccount("b2b", body.status != null ? body.status : "pending",
+                                    body.tier, body.tierExpiresAt);
+                            SessionManager.saveHasPassword(true);
+                            ApprovalCheckWorker.sync(SignUpActivity.this);   // 푸시가 안 올 때를 대비한 주기적 확인
+                            PushTokens.register();                           // 승인 · 거절되면 바로 푸시
+                        }
+                        startActivity(PendingApprovalActivity.afterSignup(SignUpActivity.this, company,
+                                verifiedEmail, loggedIn));
+                        if (loggedIn) {
+                            setResult(RESULT_OK);
+                        } else {
+                            // 예전 서버(토큰 없음): 로그인 화면에 이메일만 채워 준다
+                            setResult(RESULT_PENDING, new Intent().putExtra(EXTRA_EMAIL, verifiedEmail));
+                        }
+                        finish();
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<AuthModels.SignupB2bResponse> call, @NonNull Throwable t) {
+                        setLoading(false);
+                        signUpButton.setEnabled(agreement.allAgreed());
                         showError("인터넷 연결을 확인해 주세요.");
                     }
                 });

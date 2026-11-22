@@ -1,6 +1,9 @@
 package com.example.gajeontiming;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,9 +19,13 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -32,6 +39,8 @@ import com.example.gajeontiming.data.TrendCache;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.model.TrendResponse;
+import com.example.gajeontiming.alert.ApprovalCheckWorker;
+import com.example.gajeontiming.alert.PushTokens;
 import com.example.gajeontiming.auth.AccountSync;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.network.ApiClient;
@@ -121,8 +130,7 @@ public class MainActivity extends AppCompatActivity {
         retryButton.setOnClickListener(v -> loadTrend());
 
         loadTrend();
-        // 저장된 로그인 상태를 서버와 맞춘다 (회원 유형 · 등급 · 만료 확인). 화면은 기다리지 않는다
-        AccountSync.refresh(this::bindDrawerUser);
+        // 로그인 상태를 서버와 맞추는 건 onResume에서 한다 (앱에 돌아올 때마다 · 1분 간격)
     }
 
     // ── ☰ 메뉴: AI 추천 · AI 상담 · 가격 알림 · 마이페이지 ───────
@@ -207,6 +215,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** 로그인 · 로그아웃하고 돌아올 수 있으니 화면에 돌아올 때마다 새로 쓴다 */
+    /** 안드로이드 13+: 승인 대기 사업자가 승인 결과 푸시를 받으려면 알림 권한이 필요하다 */
+    private final ActivityResultLauncher<String> pushPermission = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(), granted -> { });
+    private boolean pushPermissionAsked;   // 이 화면에서 한 번만 묻는다 (거절하면 다시 귀찮게 하지 않음)
+
+    /**
+     * 가입 신청 화면을 거치지 않고 로그인한 승인 대기 사업자도 푸시를 받을 수 있게 권한을 묻는다.
+     * (가입 신청 직후에는 PendingApprovalActivity가 묻는다)
+     */
+    private void askPushPermissionIfPending() {
+        if (pushPermissionAsked || !SessionManager.isB2bPending()) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+                && !isFinishing()) {
+            pushPermissionAsked = true;
+            pushPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
+    }
+
+    /** 서버와 회원 정보를 맞춘 뒤: 드로어 이름 갱신 · 사업자 승인 완료 안내(한 번) */
+    private void onAccountSynced() {
+        bindDrawerUser();
+        askPushPermissionIfPending();
+        PushTokens.register();            // 로그인 상태면 이 휴대폰 푸시 토큰 등록 (같은 토큰은 덮어씀)
+        ApprovalCheckWorker.sync(this);   // 승인 대기 중이면 백그라운드 확인 예약, 아니면 멈춤
+        if (SessionManager.consumeApprovedNotice() && !isFinishing()) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.b2b_approved_title)
+                    .setMessage(R.string.b2b_approved_message)
+                    .setPositiveButton(R.string.pending_ok, null)
+                    .show();
+        }
+    }
+
     private void bindDrawerUser() {
         String name = SessionManager.getName();
         if (SessionManager.isLoggedIn()) {
@@ -219,9 +262,20 @@ public class MainActivity extends AppCompatActivity {
 
     /** 리포트를 보고 돌아오면 최근 본 제품을 새로 그린다 */
     @Override
+    protected void onPause() {
+        super.onPause();
+        AccountSync.setOnChangedListener(null);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         bindRecent();
+        // 저장된 로그인 상태를 서버와 맞춘다 (회원 유형 · 등급 · 사업자 승인). 화면은 기다리지 않는다
+        AccountSync.refreshIfStale(this::onAccountSynced);
+        // 켜져 있는 동안 승인 · 거절 푸시가 오면 바로 다시 그린다 (PushService)
+        AccountSync.setOnChangedListener(this::bindDrawerUser);
+        bindDrawerUser();
         bindDrawerUser();
     }
 

@@ -41,6 +41,37 @@ public final class AuthModels {
     }
 
     /** 가입 · 로그인 성공 응답 */
+    /**
+     * POST /api/auth/signup/b2b: 사업자 회원 가입 신청. 바로 로그인되지 않고 관리자 승인을 기다린다.
+     * 회사명 · 업종이 비면 서버가 400 "회사명과 업종을 입력해 주세요". 연락처는 선택(빈 문자열 가능).
+     */
+    public static class SignupB2bRequest {
+        public final String email;
+        public final String password;
+        @SerializedName("company_name") public final String companyName;
+        @SerializedName("business_type") public final String businessType;
+        @SerializedName("contact_phone") public final String contactPhone;
+        @SerializedName("agree_terms") public final boolean agreeTerms;
+        public SignupB2bRequest(String email, String password, String companyName, String businessType,
+                                String contactPhone, boolean agreeTerms) {
+            this.email = email; this.password = password; this.companyName = companyName;
+            this.businessType = businessType; this.contactPhone = contactPhone; this.agreeTerms = agreeTerms;
+        }
+    }
+
+    /**
+     * signup/b2b 응답: status "pending" + token (승인 전에도 개인 기능은 쓸 수 있게 바로 로그인).
+     * 예전 서버는 token이 없었다 → 그때는 로그인 없이 승인 대기 화면만 보여 준다.
+     */
+    public static class SignupB2bResponse {
+        public String token;
+        @SerializedName("user_type") public String userType;
+        @SerializedName("company_name") public String companyName;
+        public String status;
+        public String tier;
+        @SerializedName("tier_expires_at") public String tierExpiresAt;
+    }
+
     public static class AuthResponse {
         public String token;
         @SerializedName("user_type") public String userType;   // b2c | b2b
@@ -73,6 +104,13 @@ public final class AuthModels {
             this.newPassword = newPassword;
             this.newPasswordConfirm = newPasswordConfirm;
         }
+    }
+
+    /** POST /api/user/push-token(platform "android") · /push-token/delete(platform 없음): FCM 푸시 토큰 */
+    public static class PushTokenRequest {
+        public final String token;
+        public final String platform;
+        public PushTokenRequest(String token, String platform) { this.token = token; this.platform = platform; }
     }
 
     /** POST /api/auth/social/token: 카카오 액세스 토큰 · 구글 ID 토큰을 우리 로그인 토큰으로 바꾼다 */

@@ -15,6 +15,12 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+// FCM 푸시: Firebase 콘솔에서 받은 app/google-services.json(git 제외)이 있을 때만 켠다.
+// 없으면 푸시만 꺼진 채로 빌드된다 (PushTokens가 Firebase 초기화 여부를 확인)
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.example.gajeontiming"
     compileSdk {
@@ -80,4 +86,7 @@ dependencies {
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    // FCM 푸시 (사업자 승인 · 거절 즉시 알림)
+    implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
+    implementation("com.google.firebase:firebase-messaging")
 }
