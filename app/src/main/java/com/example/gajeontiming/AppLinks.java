@@ -11,6 +11,6 @@ public final class AppLinks {
     /** 이용약관 웹페이지 */
     public static final String TERMS_URL = "https://appliance-trend-insight.vercel.app/terms";
     /** 문의 받을 이메일 주소 */
-    public static final String SUPPORT_EMAIL = null;
+    public static final String SUPPORT_EMAIL = "gajeonmussang@gmail.com";
     private AppLinks() { }
 }
