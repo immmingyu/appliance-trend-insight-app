@@ -227,6 +227,8 @@ public class SignUpActivity extends AppCompatActivity {
                             return;
                         }
                         SessionManager.save(body.token, verifiedEmail, body.nickname);
+                        SessionManager.saveAccount("b2c", "active", null, null);   // 개인 회원은 가입 즉시 사용
+                        SessionManager.saveHasPassword(true);
                         Toast.makeText(SignUpActivity.this,
                                 nickname + "님, 가입을 환영해요", Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);

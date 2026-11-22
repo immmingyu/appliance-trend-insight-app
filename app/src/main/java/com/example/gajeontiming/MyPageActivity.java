@@ -23,13 +23,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gajeontiming.adapter.RecentAdapter;
+import com.example.gajeontiming.auth.AccountSync;
 import com.example.gajeontiming.auth.GoogleLogin;
 import com.example.gajeontiming.auth.KakaoLogin;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.data.RecentProductDb;
+import com.example.gajeontiming.model.AuthMe;
 import com.example.gajeontiming.model.AuthModels;
-import com.example.gajeontiming.model.UserProfile;
 import com.example.gajeontiming.network.ApiClient;
+import com.example.gajeontiming.network.AuthGuard;
 import com.example.gajeontiming.network.ApiErrors;
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -55,7 +57,7 @@ public class MyPageActivity extends AppCompatActivity {
     private Button recentClear;
     private Button withdrawButton, passwordButton;
     private RecentAdapter recentAdapter;
-    private Call<UserProfile> meCall;
+    private Call<AuthMe> meCall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +117,7 @@ public class MyPageActivity extends AppCompatActivity {
     private void bindAccount() {
         boolean loggedIn = SessionManager.isLoggedIn();
         withdrawButton.setVisibility(loggedIn ? View.VISIBLE : View.GONE);
-        boolean emailMember = loggedIn && SessionManager.getProvider() == null;
+        boolean emailMember = loggedIn && !SessionManager.isSocialOnly();
         passwordButton.setVisibility(emailMember ? View.VISIBLE : View.GONE);
         if (!loggedIn) {
             loggedInBox.setVisibility(View.GONE);
@@ -131,30 +133,31 @@ public class MyPageActivity extends AppCompatActivity {
         joinText.setVisibility(View.GONE);
 
         if (meCall != null) meCall.cancel();
-        meCall = ApiClient.get().getMe();
-        meCall.enqueue(new Callback<UserProfile>() {
+        meCall = ApiClient.get().getAuthMe();
+        meCall.enqueue(new Callback<AuthMe>() {
             @Override
-            public void onResponse(@NonNull Call<UserProfile> call, @NonNull Response<UserProfile> response) {
-                if (response.code() == 401) {          // 로그인 만료 → 로그아웃 상태로 보여줌
-                    SessionManager.logout();
+            public void onResponse(@NonNull Call<AuthMe> call, @NonNull Response<AuthMe> response) {
+                if (AuthGuard.isLoggedOut(response)) {   // 로그인 만료 → 로그아웃 상태로 보여줌
                     bindAccount();
                     return;
                 }
-                UserProfile me = response.body();
+                AuthMe me = response.body();
                 if (!response.isSuccessful() || me == null) return;
+                AccountSync.apply(me);   // 회원 유형 · 등급 · 비밀번호 유무 저장
+                passwordButton.setVisibility(SessionManager.isSocialOnly() ? View.GONE : View.VISIBLE);
 
-                String name = me.nickname != null && !me.nickname.isEmpty() ? me.nickname : me.companyName;
+                String name = me.displayName();
                 if (name != null && !name.isEmpty()) nameText.setText(name + "님");
                 if (me.email != null) emailText.setText(me.email);
 
-                String type = "b2b".equals(me.userType) ? "사업자 회원" : "일반 회원";
+                String type = me.isB2b() ? "사업자 회원" : "일반 회원";
                 String joined = formatJoinDate(me.createdAt);
                 joinText.setText(joined != null ? type + " · " + joined + " 가입" : type);
                 joinText.setVisibility(View.VISIBLE);
             }
 
             @Override
-            public void onFailure(@NonNull Call<UserProfile> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<AuthMe> call, @NonNull Throwable t) {
                 // 저장해 둔 정보가 이미 보이므로 따로 안내하지 않는다
             }
         });
@@ -261,7 +264,7 @@ public class MyPageActivity extends AppCompatActivity {
      * 틀리면 창을 닫지 않고 서버 안내("비밀번호가 올바르지 않습니다" 등)를 창 안에 보여 준다.
      */
     private void onWithdraw() {
-        boolean social = SessionManager.getProvider() != null;
+        boolean social = SessionManager.isSocialOnly();
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_withdraw, null);
         EditText password = view.findViewById(R.id.withdraw_password);
         if (social) {

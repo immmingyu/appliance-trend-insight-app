@@ -32,6 +32,7 @@ import com.example.gajeontiming.data.TrendCache;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.model.TrendResponse;
+import com.example.gajeontiming.auth.AccountSync;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.ui.Pulse;
@@ -120,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
         retryButton.setOnClickListener(v -> loadTrend());
 
         loadTrend();
+        // 저장된 로그인 상태를 서버와 맞춘다 (회원 유형 · 등급 · 만료 확인). 화면은 기다리지 않는다
+        AccountSync.refresh(this::bindDrawerUser);
     }
 
     // ── ☰ 메뉴: AI 추천 · AI 상담 · 가격 알림 · 마이페이지 ───────
