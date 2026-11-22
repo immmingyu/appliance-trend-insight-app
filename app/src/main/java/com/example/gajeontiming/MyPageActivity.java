@@ -32,12 +32,14 @@ import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.data.RecentProductDb;
 import com.example.gajeontiming.model.AuthMe;
 import com.example.gajeontiming.model.AuthModels;
+import com.example.gajeontiming.model.Tiers;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.network.AuthGuard;
 import com.example.gajeontiming.network.ApiErrors;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.List;
+import java.util.TimeZone;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -53,7 +55,7 @@ import retrofit2.Response;
 public class MyPageActivity extends AppCompatActivity implements AccountAware {
 
     private View loggedInBox, loggedOutBox;
-    private TextView nameText, emailText, joinText, b2bNotice;
+    private TextView nameText, emailText, joinText, tierText, b2bNotice;
     private RecyclerView recentList;
     private TextView recentEmpty;
     private Button recentClear;
@@ -79,6 +81,7 @@ public class MyPageActivity extends AppCompatActivity implements AccountAware {
         emailText = findViewById(R.id.mypage_email);
         joinText = findViewById(R.id.mypage_join);
         b2bNotice = findViewById(R.id.mypage_b2b_notice);
+        tierText = findViewById(R.id.mypage_tier);
         recentList = findViewById(R.id.mypage_recent_list);
         recentEmpty = findViewById(R.id.mypage_recent_empty);
         recentClear = findViewById(R.id.mypage_recent_clear);
@@ -135,6 +138,7 @@ public class MyPageActivity extends AppCompatActivity implements AccountAware {
         emailText.setText(SessionManager.getEmail());
         joinText.setVisibility(View.GONE);
         bindB2bNotice();
+        bindTier();
 
         if (meCall != null) meCall.cancel();
         meCall = ApiClient.get().getAuthMe();
@@ -158,6 +162,7 @@ public class MyPageActivity extends AppCompatActivity implements AccountAware {
                         : "pending".equals(me.status) ? "사업자 회원 · 승인 대기 중"
                         : "rejected".equals(me.status) ? "사업자 회원 · 승인 거절" : "사업자 회원";
                 bindB2bNotice();
+                bindTier();
                 String joined = formatJoinDate(me.createdAt);
                 joinText.setText(joined != null ? type + " · " + joined + " 가입" : type);
                 joinText.setVisibility(View.VISIBLE);
@@ -174,6 +179,20 @@ public class MyPageActivity extends AppCompatActivity implements AccountAware {
     @Override
     public void onAccountChanged() {
         bindAccount();
+    }
+
+    /**
+     * 승인된 사업자 회원의 구독 등급 · 만료일 ("골드 등급 · 2026.12.31까지").
+     * 개인 회원 · 승인 대기 · 거절이면 숨긴다. 결제 · 업그레이드 안내는 넣지 않는다 (Play 결제 정책).
+     */
+    private void bindTier() {
+        if (!SessionManager.isB2b()) {
+            tierText.setVisibility(View.GONE);
+            return;
+        }
+        tierText.setText(Tiers.summary(SessionManager.getTier(), SessionManager.getTierExpiresAt(),
+                TimeZone.getDefault()));
+        tierText.setVisibility(View.VISIBLE);
     }
 
     /** 사업자 승인 대기 · 거절이면 안내를 보여 준다 (승인 전에도 개인 기능은 그대로 사용) */

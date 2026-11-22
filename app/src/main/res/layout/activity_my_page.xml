@@ -62,6 +62,17 @@
                             android:layout_marginTop="2dp"
                             android:textSize="12sp" />
 
+                        <!-- 구독 등급 · 만료일 (승인된 사업자 회원만, B2B 단계 5) -->
+                        <TextView
+                            android:id="@+id/mypage_tier"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:textColor="@color/brand_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+
                         <!-- 사업자 승인 대기 · 거절 안내 (해당할 때만) -->
                         <TextView
                             android:id="@+id/mypage_b2b_notice"
