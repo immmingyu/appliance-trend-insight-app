@@ -1,9 +1,15 @@
 package com.example.gajeontiming.alert;
 
+import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+
 import androidx.annotation.NonNull;
 
 import com.example.gajeontiming.auth.AccountSync;
 import com.example.gajeontiming.auth.SessionManager;
+import com.example.gajeontiming.ui.B2bStatusDialog;
+import com.example.gajeontiming.ui.ForegroundTracker;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -14,28 +20,41 @@ import java.util.Map;
  * 서버는 사업자 승인 · 거절 순간 notification(제목 · 내용) + data {type: "b2b_status", status: "active" | "rejected"}를 보낸다.
  *   앱이 꺼져 있거나 백그라운드: 안드로이드가 notification을 "회원 안내" 채널로 바로 띄운다 (이 메서드는 안 불림).
  *                              누르면 앱 첫 화면 → 홈이 열리고, 홈이 /api/auth/me로 상태를 맞춘다.
- *   앱이 켜져 있음: 여기로 온다 → 회원 정보를 다시 받아 화면을 갱신하고 알림도 직접 띄운다.
+ *   앱을 쓰는 중(어느 화면이든): 여기로 온다 → 휴대폰 알림 + 지금 화면에 안내 창(모달),
+ *                 회원 정보를 다시 받아 홈 · 마이페이지를 갱신한다.
+ *   백그라운드 · 종료: 안드로이드가 알림만 띄운다 → 나중에 앱을 열면 홈이 상태 변화를 보고 안내 창을 띄운다.
  */
 public class PushService extends FirebaseMessagingService {
 
     @Override
     public void onNewToken(@NonNull String token) {
+        PushTokens.log("새 토큰 받음");
         PushTokens.send(token);   // 로그인 상태일 때만 등록된다
     }
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage message) {
         Map<String, String> data = message.getData();
+        PushTokens.log("푸시 받음 (앱 켜짐): " + data);
         if (!"b2b_status".equals(data.get("type")) || !SessionManager.isLoggedIn()) return;
 
         boolean approved = "active".equals(data.get("status"));
+        // 휴대폰 알림은 항상 보낸다
         AlertNotifier.notifyB2bResult(this, approved);
-        // 화면 갱신: 저장된 상태를 서버와 맞추고, 홈 화면이 열려 있으면 바로 다시 그린다.
-        // 휴대폰 알림으로 이미 알렸으니 앱 안 승인 안내 창은 띄우지 않는다
-        AccountSync.refresh(() -> {
-            SessionManager.consumeApprovedNotice();
-            AccountSync.notifyChanged();
+        ApprovalCheckWorker.sync(this);   // 결과가 나왔으니 주기적 확인은 멈춘다 (상태 갱신 뒤 다시 한 번 정리됨)
+        if (ForegroundTracker.current() == null) {
+            // 앱이 화면에 없음: 상태만 맞춰 둔다 → 다음에 앱을 열면 홈에서 안내 창 (SessionManager 안내 표시)
+            AccountSync.refresh(null);
+            return;
+        }
+        // 앱을 쓰는 중: 지금 화면에 바로 안내 창 + 회원 정보 갱신 · 다시 그리기
+        new Handler(Looper.getMainLooper()).post(() -> {
+            Activity screen = ForegroundTracker.current();
+            if (screen != null) B2bStatusDialog.show(screen, approved);
+            AccountSync.refresh(() -> {
+                if (screen != null) SessionManager.consumeStatusNotice();   // 방금 띄웠으니 나중에 또 띄우지 않게
+                AccountSync.notifyChanged();
+            });
         });
-        ApprovalCheckWorker.sync(this);   // 결과가 나왔으니 주기적 확인은 멈춘다
     }
 }

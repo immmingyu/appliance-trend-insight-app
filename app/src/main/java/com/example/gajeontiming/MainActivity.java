@@ -41,6 +41,7 @@ import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.model.TrendResponse;
 import com.example.gajeontiming.alert.ApprovalCheckWorker;
 import com.example.gajeontiming.alert.PushTokens;
+import com.example.gajeontiming.auth.AccountAware;
 import com.example.gajeontiming.auth.AccountSync;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.network.ApiClient;
@@ -61,7 +62,7 @@ import retrofit2.Response;
  * 홈 화면.
  * F-02 트렌드 TOP10 · F-03 카테고리 선택 · 검색창 → 제품 목록 화면으로 이동
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AccountAware {
 
     private static final long SLOW_NOTICE_MS = 5000;   // 5초가 넘으면 "서버 깨우는 중" 안내로 바꿈
 
@@ -235,19 +236,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** 서버와 회원 정보를 맞춘 뒤: 드로어 이름 갱신 · 사업자 승인 완료 안내(한 번) */
+    /** 서버와 회원 정보를 맞춘 뒤: 드로어 이름 갱신 · 푸시 권한 · 토큰 등록 · 승인 확인 예약 */
     private void onAccountSynced() {
         bindDrawerUser();
         askPushPermissionIfPending();
         PushTokens.register();            // 로그인 상태면 이 휴대폰 푸시 토큰 등록 (같은 토큰은 덮어씀)
         ApprovalCheckWorker.sync(this);   // 승인 대기 중이면 백그라운드 확인 예약, 아니면 멈춤
-        if (SessionManager.consumeApprovedNotice() && !isFinishing()) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.b2b_approved_title)
-                    .setMessage(R.string.b2b_approved_message)
-                    .setPositiveButton(R.string.pending_ok, null)
-                    .show();
-        }
+        AccountSync.showStatusNotice();   // 상태가 바뀐 걸 방금 알았으면 안내 창
+    }
+
+    /** 승인 · 거절 푸시로 회원 정보가 바뀌었을 때 (AccountSync.notifyChanged) */
+    @Override
+    public void onAccountChanged() {
+        onAccountSynced();
     }
 
     private void bindDrawerUser() {
@@ -262,20 +263,12 @@ public class MainActivity extends AppCompatActivity {
 
     /** 리포트를 보고 돌아오면 최근 본 제품을 새로 그린다 */
     @Override
-    protected void onPause() {
-        super.onPause();
-        AccountSync.setOnChangedListener(null);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         bindRecent();
         // 저장된 로그인 상태를 서버와 맞춘다 (회원 유형 · 등급 · 사업자 승인). 화면은 기다리지 않는다
+        // (승인 대기 중 결과 확인 · 안내 창은 어느 화면이든 AccountSync.onScreenResumed가 한다)
         AccountSync.refreshIfStale(this::onAccountSynced);
-        // 켜져 있는 동안 승인 · 거절 푸시가 오면 바로 다시 그린다 (PushService)
-        AccountSync.setOnChangedListener(this::bindDrawerUser);
-        bindDrawerUser();
         bindDrawerUser();
     }
 
