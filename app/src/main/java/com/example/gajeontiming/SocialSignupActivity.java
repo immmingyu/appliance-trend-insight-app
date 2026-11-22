@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.gajeontiming.auth.SocialSession;
+import com.example.gajeontiming.alert.PushTokens;
 import com.example.gajeontiming.auth.TermsAgreement;
 import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.network.ApiClient;
@@ -106,6 +107,7 @@ public class SocialSignupActivity extends AppCompatActivity {
                             return;
                         }
                         SocialSession.start(body.token, provider, nickname, () -> {
+                            PushTokens.register();
                             Toast.makeText(SocialSignupActivity.this,
                                     nickname + "님, 가입을 환영해요", Toast.LENGTH_SHORT).show();
                             setResult(RESULT_OK);

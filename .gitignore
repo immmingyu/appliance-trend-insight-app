@@ -21,3 +21,5 @@ local.properties
 *.keystore
 *.apk
 *.aab
+# Firebase 설정 (팀원은 Firebase 콘솔에서 각자 받아 app/에 넣기)
+app/google-services.json
