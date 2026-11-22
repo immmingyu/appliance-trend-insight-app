@@ -15,18 +15,24 @@ public final class ApiErrors {
     private ApiErrors() { }
 
     public static String message(Response<?> response, String fallback) {
+        String detail = detail(response);
+        return detail != null ? detail : withCode(response, fallback);
+    }
+
+    /** 서버 안내 문장(detail). 없거나 문장이 아니면 null */
+    public static String detail(Response<?> response) {
         try {
-            if (response.errorBody() == null) return withCode(response, fallback);
+            if (response.errorBody() == null) return null;
             JsonObject obj = JsonParser.parseString(response.errorBody().string()).getAsJsonObject();
             JsonElement detail = obj.get("detail");
-            // 입력 형식 오류(422)는 detail이 목록이라 문장이 아니다 → 기본 문구 사용
+            // 입력 형식 오류(422)는 detail이 목록이라 문장이 아니다 → null
             if (detail != null && detail.isJsonPrimitive()) {
                 return detail.getAsString();
             }
         } catch (Exception ignored) {
-            // 서버가 JSON이 아닌 응답(점검 페이지 등)을 주면 기본 문구
+            // 서버가 JSON이 아닌 응답(점검 페이지 등)을 주면 null
         }
-        return withCode(response, fallback);
+        return null;
     }
 
     /**

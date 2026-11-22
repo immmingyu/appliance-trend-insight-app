@@ -190,6 +190,8 @@ public class LoginActivity extends AppCompatActivity {
                         if (response.isSuccessful() && body != null && body.token != null) {
                             String name = body.nickname != null ? body.nickname : body.companyName;
                             SessionManager.save(body.token, email, name);
+                            SessionManager.saveAccount(body.userType, body.status, body.tier, body.tierExpiresAt);
+                            SessionManager.saveHasPassword(true);   // 이메일 · 비밀번호로 들어왔다
                             Toast.makeText(LoginActivity.this,
                                     SessionManager.getName() + "님, 반가워요", Toast.LENGTH_SHORT).show();
                             setResult(RESULT_OK);

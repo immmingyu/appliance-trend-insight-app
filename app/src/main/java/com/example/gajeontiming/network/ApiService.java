@@ -3,6 +3,7 @@ package com.example.gajeontiming.network;
 import com.example.gajeontiming.model.AiAnalysisResponse;
 import com.example.gajeontiming.model.AiCompareResponse;
 import com.example.gajeontiming.model.AlertModels;
+import com.example.gajeontiming.model.AuthMe;
 import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.model.BestPriceResponse;
 import com.example.gajeontiming.model.HealthResponse;
@@ -12,7 +13,6 @@ import com.example.gajeontiming.model.ProductListResponse;
 import com.example.gajeontiming.model.RecommendResponse;
 import com.example.gajeontiming.model.ReportResponse;
 import com.example.gajeontiming.model.TimingResponse;
-import com.example.gajeontiming.model.UserProfile;
 import com.example.gajeontiming.model.TrendResponse;
 
 import retrofit2.Call;
@@ -127,9 +127,10 @@ public interface ApiService {
     @DELETE("api/user/alerts/{id}")
     Call<AuthModels.MessageResponse> deleteAlert(@Path("id") long alertId);
 
-    // F-15 마이페이지: 내 정보 (로그인 필요)
-    @GET("api/user/me")
-    Call<UserProfile> getMe();
+    // F-15 내 정보 (로그인 필요): 회원 유형 · 상태 · 등급 · 소셜 연결 · 비밀번호 유무 · 가입일
+    // 탈퇴 · 비활성화된 계정이면 401
+    @GET("api/auth/me")
+    Call<AuthMe> getAuthMe();
 
     // F-14 AI 추천: "에어컨 1인 자취 30만원 이하" 같은 문장 하나를 보낸다
     // (예산은 반드시 "숫자+만원" 형식이어야 서버가 알아듣는다)

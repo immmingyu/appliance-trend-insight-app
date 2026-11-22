@@ -46,6 +46,9 @@ public final class AuthModels {
         @SerializedName("user_type") public String userType;   // b2c | b2b
         public String nickname;                                // 일반 회원
         @SerializedName("company_name") public String companyName;   // 사업자 회원
+        public String status;                                  // active (로그인 응답)
+        public String tier;                                    // 사업자 회원 구독 등급 (로그인 응답)
+        @SerializedName("tier_expires_at") public String tierExpiresAt;
     }
 
     /**
