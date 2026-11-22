@@ -21,6 +21,8 @@ public final class SessionManager {
     private static final String KEY_STATUS = "status";               // active | pending | rejected
     private static final String KEY_TIER = "tier";                   // free | silver | gold | platinum
     private static final String KEY_TIER_EXPIRES = "tier_expires_at";
+    // 사업자 승인 완료 안내를 아직 안 보여 줬으면 "true" (pending → active로 바뀐 걸 앱이 본 순간 켠다)
+    private static final String KEY_APPROVED_NOTICE = "approved_notice";
     // 로그인 방법 (/api/auth/me의 has_password, 모르면 없음)
     private static final String KEY_HAS_PASSWORD = "has_password";   // "true" | "false"
 
@@ -55,7 +57,12 @@ public final class SessionManager {
 
     /** 회원 유형 · 상태 · 구독 등급을 저장한다. null로 온 값은 지운다 (b2c는 tier가 없을 수 있음) */
     public static void saveAccount(String userType, String status, String tier, String tierExpiresAt) {
-        prefs.edit()
+        SharedPreferences.Editor editor = prefs.edit();
+        // 승인 대기였던 사업자가 승인됨 → 다음 홈 화면에서 한 번 안내
+        if ("b2b".equals(userType) && "active".equals(status) && "pending".equals(getStatus())) {
+            editor.putBoolean(KEY_APPROVED_NOTICE, true);
+        }
+        editor
                 .putString(KEY_USER_TYPE, userType)
                 .putString(KEY_STATUS, status)
                 .putString(KEY_TIER, tier)
@@ -73,9 +80,29 @@ public final class SessionManager {
         return prefs == null ? null : prefs.getString(KEY_USER_TYPE, null);
     }
 
-    /** 사업자 회원 (비즈니스 메뉴를 보여 줄지) */
+    /**
+     * 승인된 사업자 회원 (비즈니스 메뉴를 보여 줄지).
+     * 승인 대기 · 거절 사업자는 개인 회원과 같은 기능만 쓴다 (서버 B2B API도 403).
+     */
     public static boolean isB2b() {
-        return isLoggedIn() && "b2b".equals(getUserType());
+        return isLoggedIn() && "b2b".equals(getUserType()) && "active".equals(getStatus());
+    }
+
+    /** 사업자로 가입 신청했고 관리자 승인을 기다리는 중 */
+    public static boolean isB2bPending() {
+        return isLoggedIn() && "b2b".equals(getUserType()) && "pending".equals(getStatus());
+    }
+
+    /** 사업자 승인이 거절됨 (개인 기능은 계속 사용) */
+    public static boolean isB2bRejected() {
+        return isLoggedIn() && "b2b".equals(getUserType()) && "rejected".equals(getStatus());
+    }
+
+    /** 사업자 승인 완료 안내를 보여 줘야 하면 true를 돌려주고 표시를 지운다 (한 번만) */
+    public static boolean consumeApprovedNotice() {
+        if (prefs == null || !prefs.getBoolean(KEY_APPROVED_NOTICE, false)) return false;
+        prefs.edit().remove(KEY_APPROVED_NOTICE).apply();
+        return true;
     }
 
     public static String getStatus() {

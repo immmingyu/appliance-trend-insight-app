@@ -17,6 +17,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.gajeontiming.alert.ApprovalCheckWorker;
+import com.example.gajeontiming.alert.PushTokens;
 import com.example.gajeontiming.auth.GoogleLogin;
 import com.example.gajeontiming.auth.KakaoLogin;
 import com.example.gajeontiming.auth.SessionManager;
@@ -52,6 +54,10 @@ public class LoginActivity extends AppCompatActivity {
                 if (result.getResultCode() == Activity.RESULT_OK) {
                     setResult(RESULT_OK);
                     finish();
+                } else if (result.getResultCode() == SignUpActivity.RESULT_PENDING && result.getData() != null) {
+                    // 사업자 가입 신청 후: 승인되면 바로 로그인할 수 있게 이메일을 채워 둔다
+                    emailInput.setText(result.getData().getStringExtra(SignUpActivity.EXTRA_EMAIL));
+                    passwordInput.requestFocus();
                 }
             });
 
@@ -139,6 +145,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (body.token != null) {             // 기존 회원
                             SocialSession.start(body.token, provider, null, () -> {
                                 setLoading(false);
+                                PushTokens.register();
                                 Toast.makeText(LoginActivity.this,
                                         SessionManager.getName() + "님, 반가워요", Toast.LENGTH_SHORT).show();
                                 setResult(RESULT_OK);
@@ -192,14 +199,20 @@ public class LoginActivity extends AppCompatActivity {
                             SessionManager.save(body.token, email, name);
                             SessionManager.saveAccount(body.userType, body.status, body.tier, body.tierExpiresAt);
                             SessionManager.saveHasPassword(true);   // 이메일 · 비밀번호로 들어왔다
-                            Toast.makeText(LoginActivity.this,
-                                    SessionManager.getName() + "님, 반가워요", Toast.LENGTH_SHORT).show();
+                            ApprovalCheckWorker.sync(LoginActivity.this);   // 승인 대기 사업자면 승인 확인 예약
+                            PushTokens.register();                          // 푸시 받을 휴대폰 등록
+                            Toast.makeText(LoginActivity.this, welcomeMessage(), Toast.LENGTH_LONG).show();
                             setResult(RESULT_OK);
                             finish();
                         } else {
                             // 오류 본문은 한 번만 읽을 수 있어서 먼저 꺼내 둔다
                             String msg = ApiErrors.message(response, "로그인하지 못했어요. 잠시 후 다시 시도해 주세요.");
-                            showError("PENDING".equals(msg) ? "사업자 회원 승인을 기다리는 중이에요." : msg);
+                            if ("PENDING".equals(msg)) {        // 사업자 회원 승인 전 (403)
+                                showError("사업자 회원 승인을 기다리는 중이에요.");
+                                startActivity(PendingApprovalActivity.onLogin(LoginActivity.this, email));
+                            } else {
+                                showError(msg);                 // 거절(403) 등은 서버 안내 그대로
+                            }
                         }
                     }
 
@@ -209,6 +222,16 @@ public class LoginActivity extends AppCompatActivity {
                         showError("인터넷 연결을 확인해 주세요.");
                     }
                 });
+    }
+
+    /** 로그인 인사. 승인 대기 · 거절 사업자는 상태를 함께 알려 준다 (개인 기능은 그대로 쓸 수 있음) */
+    private String welcomeMessage() {
+        String hello = SessionManager.getName() + "님, 반가워요";
+        if (SessionManager.isB2bPending()) return hello + "\n" + getString(R.string.b2b_pending_short);
+        if (SessionManager.isB2bRejected()) return hello + "\n" + getString(R.string.b2b_rejected);
+        // 승인 대기 중에 신청하고 승인 뒤 처음 로그인한 경우도 여기서 알 수 있게
+        if (SessionManager.isB2b()) return hello + "\n" + getString(R.string.b2b_approved_message);
+        return hello;
     }
 
     private void setLoading(boolean loading) {

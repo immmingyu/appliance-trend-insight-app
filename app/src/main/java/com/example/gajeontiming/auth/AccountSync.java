@@ -18,7 +18,20 @@ import retrofit2.Response;
  */
 public final class AccountSync {
 
+    private static final long MIN_INTERVAL_MS = 60 * 1000;   // 화면을 오갈 때마다 부르지 않도록
+    private static long lastRefreshAt;
+    private static Runnable changedListener;   // 지금 열린 홈 화면 (푸시로 상태가 바뀌면 다시 그린다)
+
     private AccountSync() { }
+
+    /**
+     * 마지막 확인 뒤 1분이 지났을 때만 refresh (홈 화면 onResume용).
+     * 앱을 백그라운드에 둔 사이 관리자가 승인해도 돌아오면 바로 알 수 있게 한다.
+     */
+    public static void refreshIfStale(@Nullable Runnable done) {
+        if (System.currentTimeMillis() - lastRefreshAt < MIN_INTERVAL_MS) return;
+        refresh(done);
+    }
 
     /** done은 끝나면(성공 · 실패 · 로그아웃 모두) 불린다. 필요 없으면 null */
     public static void refresh(@Nullable Runnable done) {
@@ -26,6 +39,7 @@ public final class AccountSync {
             if (done != null) done.run();
             return;
         }
+        lastRefreshAt = System.currentTimeMillis();
         ApiClient.get().getAuthMe().enqueue(new Callback<AuthMe>() {
             @Override
             public void onResponse(@NonNull Call<AuthMe> call, @NonNull Response<AuthMe> response) {
@@ -42,6 +56,16 @@ public final class AccountSync {
                 if (done != null) done.run();
             }
         });
+    }
+
+    /** 홈 화면이 onResume에서 등록 · onPause에서 null로 해제 */
+    public static void setOnChangedListener(@Nullable Runnable listener) {
+        changedListener = listener;
+    }
+
+    /** 회원 정보가 바뀌었다고 열린 화면에 알린다 (메인 스레드에서 부를 것) */
+    public static void notifyChanged() {
+        if (changedListener != null) changedListener.run();
     }
 
     /** 응답을 저장한다 (마이페이지처럼 직접 /api/auth/me를 부른 화면도 이걸 쓴다) */

@@ -19,6 +19,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -89,9 +90,22 @@ public interface ApiService {
     @POST("api/auth/signup/b2c")
     Call<AuthModels.AuthResponse> signup(@Body AuthModels.SignupRequest body);
 
+    // 사업자 회원 가입 신청 → 관리자 승인 대기 (토큰 없음)
+    @POST("api/auth/signup/b2b")
+    Call<AuthModels.SignupB2bResponse> signupB2b(@Body AuthModels.SignupB2bRequest body);
+
     // 회원 탈퇴: 계정 · 가격 알림 등이 서버에서 지워지고, 기존 토큰은 이후 401이 된다
     @POST("api/auth/withdraw")
     Call<AuthModels.MessageResponse> withdraw(@Body AuthModels.WithdrawRequest body);
+
+    // FCM 푸시 토큰 등록 (로그인 직후 · 토큰이 바뀔 때)
+    @POST("api/user/push-token")
+    Call<AuthModels.MessageResponse> registerPushToken(@Body AuthModels.PushTokenRequest body);
+
+    // FCM 푸시 토큰 해제 (로그아웃 직전). 로그아웃과 동시에 보내도 되게 로그인 토큰을 직접 붙인다
+    @POST("api/user/push-token/delete")
+    Call<AuthModels.MessageResponse> unregisterPushToken(@Header("Authorization") String authorization,
+                                                         @Body AuthModels.PushTokenRequest body);
 
     // 비밀번호 변경 (로그인 필요, 이메일 회원만)
     @POST("api/auth/password/change")

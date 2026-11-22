@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gajeontiming.adapter.RecentAdapter;
 import com.example.gajeontiming.auth.AccountSync;
+import com.example.gajeontiming.alert.PushTokens;
 import com.example.gajeontiming.auth.GoogleLogin;
 import com.example.gajeontiming.auth.KakaoLogin;
 import com.example.gajeontiming.auth.SessionManager;
@@ -51,7 +52,7 @@ import retrofit2.Response;
 public class MyPageActivity extends AppCompatActivity {
 
     private View loggedInBox, loggedOutBox;
-    private TextView nameText, emailText, joinText;
+    private TextView nameText, emailText, joinText, b2bNotice;
     private RecyclerView recentList;
     private TextView recentEmpty;
     private Button recentClear;
@@ -76,6 +77,7 @@ public class MyPageActivity extends AppCompatActivity {
         nameText = findViewById(R.id.mypage_name);
         emailText = findViewById(R.id.mypage_email);
         joinText = findViewById(R.id.mypage_join);
+        b2bNotice = findViewById(R.id.mypage_b2b_notice);
         recentList = findViewById(R.id.mypage_recent_list);
         recentEmpty = findViewById(R.id.mypage_recent_empty);
         recentClear = findViewById(R.id.mypage_recent_clear);
@@ -131,6 +133,7 @@ public class MyPageActivity extends AppCompatActivity {
         nameText.setText(SessionManager.getName() + "님");
         emailText.setText(SessionManager.getEmail());
         joinText.setVisibility(View.GONE);
+        bindB2bNotice();
 
         if (meCall != null) meCall.cancel();
         meCall = ApiClient.get().getAuthMe();
@@ -150,7 +153,10 @@ public class MyPageActivity extends AppCompatActivity {
                 if (name != null && !name.isEmpty()) nameText.setText(name + "님");
                 if (me.email != null) emailText.setText(me.email);
 
-                String type = me.isB2b() ? "사업자 회원" : "일반 회원";
+                String type = !me.isB2b() ? "일반 회원"
+                        : "pending".equals(me.status) ? "사업자 회원 · 승인 대기 중"
+                        : "rejected".equals(me.status) ? "사업자 회원 · 승인 거절" : "사업자 회원";
+                bindB2bNotice();
                 String joined = formatJoinDate(me.createdAt);
                 joinText.setText(joined != null ? type + " · " + joined + " 가입" : type);
                 joinText.setVisibility(View.VISIBLE);
@@ -161,6 +167,19 @@ public class MyPageActivity extends AppCompatActivity {
                 // 저장해 둔 정보가 이미 보이므로 따로 안내하지 않는다
             }
         });
+    }
+
+    /** 사업자 승인 대기 · 거절이면 안내를 보여 준다 (승인 전에도 개인 기능은 그대로 사용) */
+    private void bindB2bNotice() {
+        if (SessionManager.isB2bPending()) {
+            b2bNotice.setText(R.string.b2b_pending_long);
+        } else if (SessionManager.isB2bRejected()) {
+            b2bNotice.setText(R.string.b2b_rejected);
+        } else {
+            b2bNotice.setVisibility(View.GONE);
+            return;
+        }
+        b2bNotice.setVisibility(View.VISIBLE);
     }
 
     /** "2026-11-14 10:20:30+00:00" → "2026.11.14" */
@@ -174,6 +193,7 @@ public class MyPageActivity extends AppCompatActivity {
                 .setMessage("로그아웃할까요?")
                 .setNegativeButton("취소", null)
                 .setPositiveButton("로그아웃", (d, w) -> {
+                    PushTokens.unregister();   // 로그인 토큰이 있을 때 이 휴대폰 푸시 해제 (다음 사람에게 알림이 가지 않게)
                     signOutSocial();   // 이 기기의 카카오 · Google 로그인 정보도 정리
                     SessionManager.logout();
                     Toast.makeText(this, "로그아웃했어요", Toast.LENGTH_SHORT).show();
