@@ -22,4 +22,6 @@
     <color name="google_container">#FFFFFF</color>
     <color name="google_label">#1F1F1F</color>
     <color name="google_stroke">#747775</color>
+    <!-- 가격 모니터 보합 · 데이터 부족 신호 -->
+    <color name="monitor_neutral">#757575</color>
 </resources>

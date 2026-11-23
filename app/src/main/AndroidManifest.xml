@@ -104,6 +104,14 @@
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
 
+        <!-- B2B 가격 모니터 (단계 3, 승인된 사업자 회원) -->
+        <activity android:name=".b2b.PriceMonitorActivity" />
+        <!-- B2B 제품 시장 분석 (단계 4): 검색 → 분석 -->
+        <activity
+            android:name=".b2b.MarketSearchActivity"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
+        <activity android:name=".b2b.MarketAnalysisActivity" />
+
         <!-- 사업자 회원 승인 대기 안내 (B2B 단계 1) -->
         <activity android:name=".PendingApprovalActivity" />
 

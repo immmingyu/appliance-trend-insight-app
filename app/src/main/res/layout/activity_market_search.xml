@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- B2B 제품 시장 분석 1/2: 제품 검색 → 고르면 분석 화면 (MarketSearchActivity) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/market_search_layout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:hint="@string/market_search_hint"
+        app:endIconDrawable="@android:drawable/ic_menu_search"
+        app:endIconMode="custom">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/market_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 정렬 (받은 결과 안에서 앱이 정렬, 값이 하나도 없는 칩은 숨김). 결과가 있을 때만 보인다 -->
+    <HorizontalScrollView
+        android:id="@+id/market_sort_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/market_sort_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            app:checkedChip="@+id/market_sort_recommended"
+            app:selectionRequired="true"
+            app:singleLine="true"
+            app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/market_sort_recommended"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/market_sort_recommended" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/market_sort_popular"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/market_sort_popular" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/market_sort_latest"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/market_sort_latest" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/market_sort_low"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/market_sort_low" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/market_sort_high"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/market_sort_high" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/market_sort_energy"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/market_sort_energy" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/market_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp" />
+
+        <!-- 검색 중 -->
+        <LinearLayout
+            android:id="@+id/market_skeleton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <include layout="@layout/item_product_skeleton" />
+
+            <include layout="@layout/item_product_skeleton" />
+
+            <include layout="@layout/item_product_skeleton" />
+        </LinearLayout>
+
+        <!-- 안내 · 오류 · 결과 없음 -->
+        <TextView
+            android:id="@+id/market_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="40dp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/market_search_intro"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="15sp" />
+    </FrameLayout>
+</LinearLayout>

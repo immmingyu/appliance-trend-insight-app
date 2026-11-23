@@ -29,6 +29,25 @@
             android:orderInCategory="102"
             android:title="@string/alert_title" />
     </group>
+    <!-- 비즈니스: 승인된 사업자 회원에게만 보인다 (MainActivity.bindDrawerUser) -->
+    <group android:id="@+id/drawer_group_business">
+        <item
+            android:id="@+id/drawer_business"
+            android:orderInCategory="150"
+            android:title="@string/drawer_business"
+            android:visible="false">
+            <menu>
+                <item
+                    android:id="@+id/drawer_price_monitor"
+                    android:icon="@drawable/ic_trending"
+                    android:title="@string/monitor_title" />
+                <item
+                    android:id="@+id/drawer_market"
+                    android:icon="@drawable/ic_analytics"
+                    android:title="@string/market_title" />
+            </menu>
+        </item>
+    </group>
     <group android:id="@+id/drawer_group_account">
         <item
             android:id="@+id/drawer_mypage"
