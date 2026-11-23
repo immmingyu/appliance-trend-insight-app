@@ -60,6 +60,8 @@ public final class PushTokens {
     public static void send(String token) {
         if (token == null || token.isEmpty() || !SessionManager.isLoggedIn()) return;
         log("토큰 등록 요청: " + token.substring(0, Math.min(12, token.length())) + "…");
+        // 디버그 빌드에서만 전체 토큰: Firebase 콘솔 "테스트 메시지 전송"에 붙여 넣어 푸시를 직접 보내 볼 때
+        log("전체 토큰 (테스트 메시지용): " + token);
         ApiClient.get().registerPushToken(new AuthModels.PushTokenRequest(token, "android"))
                 .enqueue(logged("등록"));
     }
