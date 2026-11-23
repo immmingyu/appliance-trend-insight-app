@@ -73,6 +73,28 @@
                         android:minHeight="140dp"
                         android:orientation="vertical">
 
+                        <!-- 첫 제품의 품목을 서버에 묻는 동안 (상품명에 품목 단어가 없으면 1~3초) -->
+                        <LinearLayout
+                            android:id="@+id/compare_category_loading"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <ProgressBar
+                                android:layout_width="28dp"
+                                android:layout_height="28dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:gravity="center"
+                                android:text="@string/compare_category_loading"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
                         <Button
                             android:id="@+id/compare_pick_button"
                             android:layout_width="wrap_content"

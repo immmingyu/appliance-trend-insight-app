@@ -53,6 +53,8 @@ public class ProductListActivity extends AppCompatActivity {
     public static final String EXTRA_CATEGORY = "category";
     /** true면 "고르기 모드": 제품을 누르면 리포트 대신 그 제품을 부른 화면에 돌려준다 (비교용) */
     public static final String EXTRA_PICK_MODE = "pick_mode";
+    public static final String EXTRA_EXCLUDE = "exclude";   // 목록에서 뺄 제품 (비교의 첫 제품)
+    public static final String EXTRA_NOTICE = "notice";     // 목록 위에 띄울 안내 (예: 브랜드로 검색했어요)
     public static final String RESULT_PRODUCT = "picked_product";
 
     private static final int PAGE_SIZE = 15;
@@ -77,6 +79,8 @@ public class ProductListActivity extends AppCompatActivity {
     private Button danawaButton;             // 다나와에서 직접 보기
     private final List<String> removedTitles = new ArrayList<>();   // 소모품으로 걸러낸 제목들
     private boolean pickMode;
+    private Product exclude;
+    private String notice;
 
     // ── 품목 둘러보기 (품목으로 들어왔을 때만): 품목 안에서 검색 + 브랜드 고르기 ──
     private String browseCategory;    // null이면 일반 검색 화면 (둘러보기 아님)
@@ -107,6 +111,8 @@ public class ProductListActivity extends AppCompatActivity {
         query = getIntent().getStringExtra(EXTRA_QUERY);
         category = getIntent().getStringExtra(EXTRA_CATEGORY);
         pickMode = getIntent().getBooleanExtra(EXTRA_PICK_MODE, false);
+        exclude = (Product) getIntent().getSerializableExtra(EXTRA_EXCLUDE);
+        notice = getIntent().getStringExtra(EXTRA_NOTICE);
         buildAttempts();
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
@@ -253,6 +259,16 @@ public class ProductListActivity extends AppCompatActivity {
         return kept;
     }
 
+    /** 비교의 첫 제품은 B 후보에서 뺀다 */
+    private List<Product> removeExcluded(List<Product> items) {
+        if (items == null || exclude == null) return items;
+        List<Product> kept = new ArrayList<>();
+        for (Product p : items) {
+            if (!Product.isSame(exclude, p)) kept.add(p);
+        }
+        return kept;
+    }
+
     private void showBrands(List<String> brands) {
         if (brands.size() < 2) return;   // 브랜드가 하나뿐이면 고를 의미가 없다
         ChipGroup group = findViewById(R.id.product_brand_group);
@@ -352,7 +368,7 @@ public class ProductListActivity extends AppCompatActivity {
                 // 한 페이지를 꽉 채워 오지 않았으면 마지막 페이지로 본다
                 hasMore = items != null && items.size() >= PAGE_SIZE;
 
-                List<Product> shown = keepChosenBrand(removeAccessoriesIfNeeded(items));
+                List<Product> shown = removeExcluded(keepChosenBrand(removeAccessoriesIfNeeded(items)));
                 if (shown != null) adapter.addItems(shown);
 
                 if (adapter.getProductCount() == 0) {
@@ -382,7 +398,8 @@ public class ProductListActivity extends AppCompatActivity {
     /** 원래 검색어로 못 찾고 넓혀서 찾았으면, 무엇으로 찾은 결과인지 알려준다 */
     private void showFallbackNoticeIfNeeded() {
         if (attemptIndex == 0) {
-            fallbackNotice.setVisibility(View.GONE);
+            if (notice != null) fallbackNotice.setText(notice);
+            fallbackNotice.setVisibility(notice != null ? View.VISIBLE : View.GONE);
             return;
         }
         Attempt a = current();
