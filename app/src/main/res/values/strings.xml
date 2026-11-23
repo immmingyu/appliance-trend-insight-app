@@ -94,7 +94,6 @@
     <string name="alert_empty">등록한 알림이 없어요.\n제품의 구매 타이밍 화면에서 알림을 등록해 보세요.</string>
     <string name="alert_failed">알림 목록을 불러오지 못했어요.</string>
     <string name="alert_delete">알림 삭제</string>
-    <string name="alert_check_now">지금 확인</string>
     <string name="alert_dialog_title">가격 알림 등록</string>
     <string name="alert_dialog_message">지금 %1$s원이에요. 얼마 이하가 되면 알려드릴까요?</string>
     <string name="mypage_title">마이페이지</string>
