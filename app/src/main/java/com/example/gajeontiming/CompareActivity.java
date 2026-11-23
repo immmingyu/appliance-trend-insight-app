@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.model.AiCompareResponse;
 import com.example.gajeontiming.model.BestPriceResponse;
+import com.example.gajeontiming.model.CategoryResponse;
 import com.example.gajeontiming.model.Product;
 import com.example.gajeontiming.network.ApiClient;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -41,6 +42,7 @@ import retrofit2.Response;
 /**
  * F-07 제품 비교 화면 (기본 비교).
  * 리포트에서 제품 A를 받고, 제품 목록 화면을 "고르기 모드"로 열어 제품 B를 돌려받는다.
+ * B 목록은 A와 같은 품목 전체(브랜드 칩 · 정렬 칩). A의 품목을 모르면 GET /api/category로 먼저 묻는다.
  * 두 제품의 지금 최저가와 기본 정보를 나란히 놓고, 어느 쪽이 얼마나 싼지 알려준다.
  */
 public class CompareActivity extends AppCompatActivity {
@@ -63,6 +65,10 @@ public class CompareActivity extends AppCompatActivity {
     private View tableBox;      // 결론 · 비교표 · 버튼 묶음 (B를 고르기 전에는 숨김)
     private LinearLayout rows;
     private TextView verdict;
+
+    private Call<CategoryResponse> categoryCall;
+    private View categoryLoading;
+    private View pickButton;
 
     private Call<BestPriceResponse> callA;
     private Call<BestPriceResponse> callB;
@@ -126,7 +132,9 @@ public class CompareActivity extends AppCompatActivity {
         verdict = findViewById(R.id.compare_verdict);
 
         bindHeader(R.id.compare_a, productA);
-        findViewById(R.id.compare_pick_button).setOnClickListener(v -> openPicker());
+        categoryLoading = findViewById(R.id.compare_category_loading);
+        pickButton = findViewById(R.id.compare_pick_button);
+        pickButton.setOnClickListener(v -> openPicker());
         findViewById(R.id.compare_change_button).setOnClickListener(v -> openPicker());
 
         aiButton = findViewById(R.id.ai_compare_button);
@@ -138,23 +146,69 @@ public class CompareActivity extends AppCompatActivity {
         emptyBox.setVisibility(View.VISIBLE);
         resultBox.setVisibility(View.GONE);
         tableBox.setVisibility(View.GONE);
-        loadBestPrice(true);
+        if (category != null) {
+            loadBestPrice(true);
+        } else {
+            loadCategory();
+        }
+    }
+
+    // ── 첫 제품의 품목 ────────────────────────────────────────
+
+    /**
+     * 상품명에 품목 단어가 없으면(예: "LG 뉴 스타일러") 앱이 품목을 모른다 → 서버에 묻는다.
+     * 묻는 동안은 "고르기" 버튼 대신 로딩을 보여 준다. 실패 · null이면 브랜드 검색으로 넘어간다.
+     */
+    private void loadCategory() {
+        setCategoryLoading(true);
+        categoryCall = ApiClient.get().getCategory(productA.title);
+        categoryCall.enqueue(new Callback<CategoryResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<CategoryResponse> call,
+                                   @NonNull Response<CategoryResponse> response) {
+                CategoryResponse body = response.body();
+                if (body != null && body.category != null && !body.category.trim().isEmpty()) {
+                    category = body.category.trim();
+                }
+                onCategoryResolved();
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<CategoryResponse> call, @NonNull Throwable t) {
+                if (!call.isCanceled()) onCategoryResolved();
+            }
+        });
+    }
+
+    private void onCategoryResolved() {
+        if (isFinishing()) return;
+        setCategoryLoading(false);
+        loadBestPrice(true);   // 품목을 알면 최저가도 소모품을 빼고 찾는다
+    }
+
+    private void setCategoryLoading(boolean on) {
+        categoryLoading.setVisibility(on ? View.VISIBLE : View.GONE);
+        pickButton.setVisibility(on ? View.GONE : View.VISIBLE);
     }
 
     // ── 제품 B 고르기 ─────────────────────────────────────────
 
     private void openPicker() {
-        // 같은 품목을 알면 품목으로, 모르면 A의 브랜드(없으면 제품명 첫 단어)로 검색해서 보여준다
-        String query = category;
-        if (query == null) {
-            query = (productA.brand != null && !productA.brand.trim().isEmpty())
+        Intent intent = new Intent(this, ProductListActivity.class);
+        if (category != null) {
+            // 같은 품목 전체 (검색어 = 품목 이름 → 목록 화면이 브랜드 칩 · 품목 안 검색을 켠다)
+            intent.putExtra(ProductListActivity.EXTRA_QUERY, category);
+            intent.putExtra(ProductListActivity.EXTRA_CATEGORY, category);
+        } else {
+            // 품목을 끝내 모르면 A의 브랜드(없으면 제품명 첫 단어)로 검색하고 그렇다고 알린다
+            String brand = (productA.brand != null && !productA.brand.trim().isEmpty())
                     ? productA.brand.trim()
                     : productA.title.split(" ")[0];
+            intent.putExtra(ProductListActivity.EXTRA_QUERY, brand);
+            intent.putExtra(ProductListActivity.EXTRA_NOTICE, getString(R.string.compare_brand_fallback));
         }
-        Intent intent = new Intent(this, ProductListActivity.class);
-        intent.putExtra(ProductListActivity.EXTRA_QUERY, query);
-        intent.putExtra(ProductListActivity.EXTRA_CATEGORY, category);
         intent.putExtra(ProductListActivity.EXTRA_PICK_MODE, true);
+        intent.putExtra(ProductListActivity.EXTRA_EXCLUDE, productA);   // 첫 제품은 목록에서 뺀다
         pickLauncher.launch(intent);
     }
 
@@ -424,8 +478,7 @@ public class CompareActivity extends AppCompatActivity {
     }
 
     private boolean isSameProduct(Product a, Product b) {
-        if (a.id != null && !a.id.isEmpty() && a.id.equals(b.id)) return true;
-        return a.title != null && a.title.equals(b.title);
+        return Product.isSame(a, b);
     }
 
     private void openLink(String url) {
@@ -447,6 +500,7 @@ public class CompareActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (categoryCall != null) categoryCall.cancel();
         if (callA != null) callA.cancel();
         if (callB != null) callB.cancel();
         if (aiCall != null) aiCall.cancel();

@@ -16,4 +16,16 @@ public class Product implements Serializable {
     public String mallName;
     public double reviewScore;
     public int reviewCount;
+
+    /** 같은 제품인지 (상품 번호 → 판매 링크 → 제품명 순으로 비교). 비교 목록에서 첫 제품을 빼는 데 쓴다 */
+    public static boolean isSame(Product a, Product b) {
+        if (a == null || b == null) return false;
+        if (notEmpty(a.id) && a.id.equals(b.id)) return true;
+        if (notEmpty(a.link) && a.link.equals(b.link)) return true;
+        return notEmpty(a.title) && b.title != null && a.title.trim().equals(b.title.trim());
+    }
+
+    private static boolean notEmpty(String s) {
+        return s != null && !s.isEmpty();
+    }
 }

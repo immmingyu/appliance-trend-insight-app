@@ -8,6 +8,7 @@ import com.example.gajeontiming.model.AuthModels;
 import com.example.gajeontiming.model.MarketModels;
 import com.example.gajeontiming.model.PriceMonitorResponse;
 import com.example.gajeontiming.model.BestPriceResponse;
+import com.example.gajeontiming.model.CategoryResponse;
 import com.example.gajeontiming.model.HealthResponse;
 import com.example.gajeontiming.model.InsightModels;
 import com.example.gajeontiming.model.PricePositionResponse;
@@ -74,6 +75,10 @@ public interface ApiService {
 
     // F-07 제품 비교: 지금 가장 싼 판매처 가격
     // category를 같이 보내야 서버가 소모품 · 부품을 빼고 찾는다 (null이면 생략)
+    // F-07 상품명 → 품목 (로그인 없이). 상품명에 품목 단어가 없으면 서버가 다나와로 찾아서 1~3초 걸릴 수 있다
+    @GET("api/category")
+    Call<CategoryResponse> getCategory(@Query("name") String name);
+
     @GET("api/best-price")
     Call<BestPriceResponse> getBestPrice(@Query("query") String query,
                                          @Query("category") String category);

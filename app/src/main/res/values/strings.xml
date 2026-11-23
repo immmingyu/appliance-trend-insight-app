@@ -53,6 +53,8 @@
     <string name="timing_mismatch">이 제품과 같은 상품의 가격 이력을 찾지 못했어요.\n이름이 비슷한 다른 상품(소모품 등)만 검색돼서 판단을 보여드리지 않아요.\n품목 칩(예: 로봇청소기)으로 검색해서 들어오면 정확도가 높아져요.</string>
     <string name="compare_title">제품 비교</string>
     <string name="compare_pick">비교할 제품\n고르기</string>
+    <string name="compare_category_loading">같은 품목을\n찾는 중이에요</string>
+    <string name="compare_brand_fallback">같은 품목을 찾지 못해 브랜드로 검색했어요.</string>
     <string name="compare_change">B를 다른 제품으로 바꾸기</string>
     <string name="compare_shop">판매처 보기</string>
     <string name="compare_verdict">%1$s가 %2$s원(%3$d%%) 더 저렴해요</string>
