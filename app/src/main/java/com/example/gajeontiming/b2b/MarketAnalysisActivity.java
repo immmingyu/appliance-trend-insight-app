@@ -221,7 +221,7 @@ public class MarketAnalysisActivity extends AppCompatActivity {
         body.addView(chips, lp);
         for (String kw : AnalysisFormat.CATEGORY_HINTS) {
             Chip chip = new Chip(this);
-            chip.setText(kw);
+            chip.setText(AnalysisFormat.chipLabel(kw));
             chip.setOnClickListener(v -> {
                 hint = kw;   // "새로 분석"도 고른 품목으로
                 load(false);
