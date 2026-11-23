@@ -50,5 +50,16 @@ public class AnalysisFormatTest {
         assertNull(AnalysisFormat.detectCategoryHint("비스포크", "삼성전자 비스포크 RF85DB9"));
         assertEquals("의류관리기", AnalysisFormat.detectCategoryHint("삼성 의류관리기 에어드레서"));
         assertEquals("헤어스타일러", AnalysisFormat.detectCategoryHint("다이슨 에어랩 헤어스타일러"));
+        // 전기레인지(쿡탑)와 전자레인지는 다른 품목
+        assertEquals("전기레인지", AnalysisFormat.detectCategoryHint("SK매직 3구 전기레인지"));
+        assertEquals("전자레인지", AnalysisFormat.detectCategoryHint("삼성 전자레인지 23L"));
+        assertEquals("정수기", AnalysisFormat.detectCategoryHint("코웨이 아이콘 정수기"));
+        assertEquals("신발관리기", AnalysisFormat.detectCategoryHint("LG 슈케어 신발관리기"));
+    }
+
+    @Test
+    public void 칩_이름() {
+        assertEquals("인덕션", AnalysisFormat.chipLabel("전기레인지"));
+        assertEquals("오븐", AnalysisFormat.chipLabel("오븐"));
     }
 }
