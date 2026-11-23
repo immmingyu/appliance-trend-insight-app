@@ -48,5 +48,7 @@ public class AnalysisFormatTest {
         assertEquals("김치냉장고", AnalysisFormat.detectCategoryHint("딤채 김치냉장고"));
         assertEquals("로봇청소기", AnalysisFormat.detectCategoryHint(null, "로보락 로봇청소기 S8"));
         assertNull(AnalysisFormat.detectCategoryHint("비스포크", "삼성전자 비스포크 RF85DB9"));
+        assertEquals("의류관리기", AnalysisFormat.detectCategoryHint("삼성 의류관리기 에어드레서"));
+        assertEquals("헤어스타일러", AnalysisFormat.detectCategoryHint("다이슨 에어랩 헤어스타일러"));
     }
 }
