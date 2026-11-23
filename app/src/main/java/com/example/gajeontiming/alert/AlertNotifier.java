@@ -17,6 +17,8 @@ import com.example.gajeontiming.AlertListActivity;
 import com.example.gajeontiming.MainActivity;
 import com.example.gajeontiming.R;
 
+import java.util.Map;
+
 /** 휴대폰 알림: F-12 가격 알림(누르면 가격 알림 목록) · 사업자 승인 결과(누르면 홈) */
 public final class AlertNotifier {
 
@@ -68,9 +70,11 @@ public final class AlertNotifier {
 
     /**
      * 서버 가격 알림 푸시(목표 가격 도달)를 앱을 쓰는 중에 받았을 때 직접 띄운다.
-     * 제목 · 내용은 서버 문구 그대로 ("목표 가격 도달" / "제품명 지금 ○원 (목표 ○원)"). 누르면 가격 알림 목록
+     * 제목 · 내용은 서버 문구 그대로 ("목표 가격 도달" / "제품명 지금 ○원 (목표 ○원)").
+     * 누르면 그 제품 화면 (제품 정보가 없으면 가격 알림 목록) — 앱이 꺼져 있을 때 누른 것과 같다 (PushRoute)
      */
-    public static void notifyPriceAlert(Context context, long alertId, String title, String text) {
+    public static void notifyPriceAlert(Context context, long alertId, String title, String text,
+                                        Map<String, String> data) {
         // 안드로이드 13부터는 사용자가 알림 권한을 허용해야 한다
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
@@ -78,8 +82,10 @@ public final class AlertNotifier {
             return;
         }
 
-        Intent open = new Intent(context, AlertListActivity.class);
-        PendingIntent pending = PendingIntent.getActivity(context, (int) alertId, open,
+        Intent[] route = PushRoute.fromData(context, data);
+        if (route == null) route = new Intent[]{new Intent(context, AlertListActivity.class)};
+        route[0].addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);   // 알림에서 열 때는 맨 아래 화면이 새 작업으로 시작
+        PendingIntent pending = PendingIntent.getActivities(context, (int) alertId, route,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)

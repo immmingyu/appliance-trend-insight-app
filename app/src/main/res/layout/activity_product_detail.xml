@@ -84,6 +84,15 @@
                     android:text="@string/detail_compare" />
             </LinearLayout>
 
+            <!-- F-11 가격 알림 바로 등록 (목록 가격 기준, 가격 정보가 없으면 숨김) -->
+            <Button
+                android:id="@+id/detail_alert_button"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/detail_alert"
+                app:icon="@drawable/ic_bell" />
+
             <!-- ③ AI 분석 -->
             <TextView
                 style="@style/DetailSectionTitle"

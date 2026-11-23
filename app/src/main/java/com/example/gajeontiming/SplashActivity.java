@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
+import com.example.gajeontiming.alert.PushRoute;
 import com.example.gajeontiming.model.HealthResponse;
 import com.example.gajeontiming.network.ApiClient;
 
@@ -28,9 +29,15 @@ public class SplashActivity extends AppCompatActivity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable goHome = () -> {
-        // 처음 실행이면 앱 소개부터, 이미 봤으면 바로 홈으로
-        Class<?> next = OnboardingActivity.isDone(this) ? MainActivity.class : OnboardingActivity.class;
-        startActivity(new Intent(this, next));
+        // 앱이 꺼져 있을 때 받은 가격 알림을 눌러서 들어왔으면 홈 위에 그 제품 화면을 연다
+        Intent[] route = OnboardingActivity.isDone(this) ? PushRoute.fromExtras(this, getIntent().getExtras()) : null;
+        if (route != null) {
+            startActivities(route);
+        } else {
+            // 처음 실행이면 앱 소개부터, 이미 봤으면 바로 홈으로
+            Class<?> next = OnboardingActivity.isDone(this) ? MainActivity.class : OnboardingActivity.class;
+            startActivity(new Intent(this, next));
+        }
         finish();   // 뒤로 가기를 눌러도 시작 화면으로 돌아오지 않게 닫는다
     };
 

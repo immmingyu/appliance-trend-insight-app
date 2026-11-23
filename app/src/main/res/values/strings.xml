@@ -17,6 +17,7 @@
     <string name="detail_shop">판매처에서 보기</string>
     <string name="detail_timing">구매 타이밍 보기</string>
     <string name="detail_compare">다른 제품과 비교</string>
+    <string name="detail_alert">가격 알림 받기</string>
     <string name="detail_ai_title">AI 구매 분석</string>
     <string name="detail_ai_loading">AI가 후기와 뉴스를 분석하는 중이에요.\n10~20초 정도 걸려요.</string>
     <string name="detail_ai_failed">AI 분석을 불러오지 못했어요.</string>

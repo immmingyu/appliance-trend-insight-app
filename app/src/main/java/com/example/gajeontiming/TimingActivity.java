@@ -1,14 +1,6 @@
 package com.example.gajeontiming;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.os.Build;
-import android.text.InputType;
-import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,15 +9,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.example.gajeontiming.auth.SessionManager;
-import com.example.gajeontiming.model.AlertModels;
+import com.example.gajeontiming.alert.AlertRegistration;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.PricePositionResponse;
 import com.example.gajeontiming.model.Product;
@@ -33,7 +21,6 @@ import com.example.gajeontiming.model.TimingResponse;
 import com.example.gajeontiming.model.TimingResponse.Analysis;
 import com.example.gajeontiming.model.TimingResponse.PricePoint;
 import com.example.gajeontiming.network.ApiClient;
-import com.example.gajeontiming.network.ApiErrors;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
@@ -76,14 +63,7 @@ public class TimingActivity extends AppCompatActivity {
     private Analysis lastAnalysis;   // 알림 등록할 때 현재가 · 최저가를 쓰기 위해 보관
 
     /** 로그인하지 않은 채로 알림을 누르면 로그인을 거쳐 바로 등록 창을 띄운다 */
-    private final ActivityResultLauncher<Intent> loginLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK) showAlertDialog();
-            });
-
-    private final ActivityResultLauncher<String> permissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(), granted -> { });
+    private final AlertRegistration alertRegistration = new AlertRegistration(this);
 
     private Call<TimingResponse> timingCall;
     private Call<PricePositionResponse> positionCall;
@@ -279,86 +259,7 @@ public class TimingActivity extends AppCompatActivity {
 
     private void onAlertClick() {
         if (lastAnalysis == null) return;
-        if (!SessionManager.isLoggedIn()) {
-            Toast.makeText(this, "가격 알림은 로그인 후에 쓸 수 있어요", Toast.LENGTH_SHORT).show();
-            loginLauncher.launch(new Intent(this, LoginActivity.class));
-            return;
-        }
-        showAlertDialog();
-    }
-
-    /** 목표 가격을 입력받는 창. 기본값은 30일 최저가와 현재가의 95% 중 낮은 값 (천 원 단위) */
-    private void showAlertDialog() {
-        long cur = lastAnalysis.curMin;
-        long suggest = Math.min(lastAnalysis.histMin > 0 ? lastAnalysis.histMin : cur, Math.round(cur * 0.95));
-        suggest = suggest / 1000 * 1000;
-
-        EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        input.setText(String.valueOf(suggest));
-        input.setSelectAllOnFocus(true);
-        FrameLayout box = new FrameLayout(this);
-        int pad = Math.round(20 * getResources().getDisplayMetrics().density);
-        box.setPadding(pad, 0, pad, 0);
-        box.addView(input);
-
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.alert_dialog_title)
-                .setMessage(getString(R.string.alert_dialog_message, won.format(cur)))
-                .setView(box)
-                .setNegativeButton("취소", null)
-                .setPositiveButton("등록", (d, w) -> {
-                    long target;
-                    try {
-                        target = Long.parseLong(input.getText().toString().trim());
-                    } catch (NumberFormatException e) {
-                        target = 0;
-                    }
-                    if (target <= 0) {
-                        Toast.makeText(this, "목표 가격을 숫자로 입력해 주세요", Toast.LENGTH_SHORT).show();
-                    } else if (target >= cur) {
-                        Toast.makeText(this, "지금 가격(" + won.format(cur) + "원)보다 낮게 정해 주세요",
-                                Toast.LENGTH_SHORT).show();
-                    } else {
-                        createAlert(target);
-                    }
-                })
-                .show();
-    }
-
-    private void createAlert(long target) {
-        AlertModels.CreateRequest req = new AlertModels.CreateRequest(
-                product.title, target, lastAnalysis.curMin, product.link);
-
-        ApiClient.get().createAlert(req).enqueue(new Callback<AlertModels.CreateResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<AlertModels.CreateResponse> call,
-                                   @NonNull Response<AlertModels.CreateResponse> response) {
-                if (response.code() == 401) {
-                    SessionManager.logout();
-                    loginLauncher.launch(new Intent(TimingActivity.this, LoginActivity.class));
-                    return;
-                }
-                if (!response.isSuccessful()) {
-                    Toast.makeText(TimingActivity.this,
-                            ApiErrors.message(response, "알림을 등록하지 못했어요"), Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                Toast.makeText(TimingActivity.this,
-                        won.format(target) + "원 이하가 되면 알려드릴게요", Toast.LENGTH_LONG).show();
-                // 안드로이드 13 이상은 알림 권한이 있어야 알림이 뜬다
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                        && ContextCompat.checkSelfPermission(TimingActivity.this,
-                        Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<AlertModels.CreateResponse> call, @NonNull Throwable t) {
-                Toast.makeText(TimingActivity.this, "인터넷 연결을 확인해 주세요", Toast.LENGTH_SHORT).show();
-            }
-        });
+        alertRegistration.start(product.title, product.link, lastAnalysis.curMin, lastAnalysis.histMin);
     }
 
     /** 30일 가격 꺾은선 그래프 + 평균가 기준선 */
