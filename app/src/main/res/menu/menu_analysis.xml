@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 시장 분석 화면 툴바: 캐시를 무시하고 새로 분석 (force=true) -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/analysis_refresh"
+        android:title="@string/analysis_refresh"
+        app:showAsAction="ifRoom|withText" />
+</menu>

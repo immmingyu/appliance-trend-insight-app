@@ -5,6 +5,8 @@ import com.example.gajeontiming.model.AiCompareResponse;
 import com.example.gajeontiming.model.AlertModels;
 import com.example.gajeontiming.model.AuthMe;
 import com.example.gajeontiming.model.AuthModels;
+import com.example.gajeontiming.model.MarketModels;
+import com.example.gajeontiming.model.PriceMonitorResponse;
 import com.example.gajeontiming.model.BestPriceResponse;
 import com.example.gajeontiming.model.HealthResponse;
 import com.example.gajeontiming.model.InsightModels;
@@ -106,6 +108,19 @@ public interface ApiService {
     @POST("api/user/push-token/delete")
     Call<AuthModels.MessageResponse> unregisterPushToken(@Header("Authorization") String authorization,
                                                          @Body AuthModels.PushTokenRequest body);
+
+    // B2B 가격 모니터 (승인된 사업자 회원만, 아니면 403)
+    @GET("api/b2b/price-monitor")
+    Call<PriceMonitorResponse> getPriceMonitor();
+
+    // B2B 제품 시장 분석: 제품 검색 → 분석 (승인된 사업자 회원만, 분석은 10초~1분)
+    @GET("api/b2b/product-search")
+    Call<MarketModels.ProductSearch> searchMarketProducts(@Query("q") String query);
+
+    @GET("api/b2b/search-analysis")
+    Call<MarketModels.Analysis> getMarketAnalysis(@Query("q") String productName,
+                                                  @Query("hint") String hint,
+                                                  @Query("force") boolean force);
 
     // 비밀번호 변경 (로그인 필요, 이메일 회원만)
     @POST("api/auth/password/change")

@@ -26,4 +26,5 @@
     <color name="google_container">#131314</color>
     <color name="google_label">#E3E3E3</color>
     <color name="google_stroke">#8E918F</color>
+    <color name="monitor_neutral">#9E9E9E</color>
 </resources>

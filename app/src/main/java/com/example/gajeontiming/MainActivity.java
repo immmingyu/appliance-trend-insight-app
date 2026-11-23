@@ -42,6 +42,8 @@ import com.example.gajeontiming.model.TrendResponse;
 import com.example.gajeontiming.alert.ApprovalCheckWorker;
 import com.example.gajeontiming.alert.PushTokens;
 import com.example.gajeontiming.auth.AccountAware;
+import com.example.gajeontiming.b2b.MarketSearchActivity;
+import com.example.gajeontiming.b2b.PriceMonitorActivity;
 import com.example.gajeontiming.auth.AccountSync;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.network.ApiClient;
@@ -69,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private DrawerLayout drawer;
+    private NavigationView nav;
     private boolean autoRetried;   // 트렌드를 못 받아 자동으로 한 번 다시 요청했는지
     private TextView drawerUser;   // ☰ 메뉴 맨 위 로그인 상태
     private MenuItem productsItem;   // ☰ 메뉴의 "제품 둘러보기" (누르면 카테고리가 펼쳐짐)
@@ -138,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
 
     private void setupDrawer(MaterialToolbar toolbar) {
         drawer = findViewById(R.id.home_drawer);
-        NavigationView nav = findViewById(R.id.home_nav);
+        nav = findViewById(R.id.home_nav);
         toolbar.setNavigationOnClickListener(v -> drawer.openDrawer(GravityCompat.START));
         nav.setNavigationItemSelectedListener(this::onDrawerItem);
         setupDrawerCategories(nav.getMenu());
@@ -206,6 +209,8 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
         // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
         else if (id == R.id.drawer_alerts) openFromDrawer(AlertListActivity.class);
         else if (id == R.id.drawer_mypage) openFromDrawer(MyPageActivity.class);
+        else if (id == R.id.drawer_price_monitor) openFromDrawer(PriceMonitorActivity.class);
+        else if (id == R.id.drawer_market) openFromDrawer(MarketSearchActivity.class);
         else return false;
         return true;
     }
@@ -252,6 +257,8 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
     }
 
     private void bindDrawerUser() {
+        // 비즈니스 메뉴는 승인된 사업자 회원만 (승인 · 거절 푸시나 앱 복귀로 상태가 바뀌면 여기서 다시 그린다)
+        nav.getMenu().findItem(R.id.drawer_business).setVisible(SessionManager.isB2b());
         String name = SessionManager.getName();
         if (SessionManager.isLoggedIn()) {
             drawerUser.setText(getString(R.string.drawer_user,
