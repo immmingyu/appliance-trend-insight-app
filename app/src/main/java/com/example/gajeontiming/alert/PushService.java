@@ -81,6 +81,6 @@ public class PushService extends FirebaseMessagingService {
         } catch (NumberFormatException e) {
             alertId = 0;
         }
-        AlertNotifier.notifyPriceAlert(this, alertId, n.getTitle(), n.getBody());
+        AlertNotifier.notifyPriceAlert(this, alertId, n.getTitle(), n.getBody(), data);
     }
 }

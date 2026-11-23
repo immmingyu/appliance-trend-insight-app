@@ -24,6 +24,7 @@ import com.example.gajeontiming.model.AiAnalysisResponse;
 import com.example.gajeontiming.model.AiAnalysisResponse.Analysis;
 import com.example.gajeontiming.model.AiAnalysisResponse.Review;
 import com.example.gajeontiming.model.Categories;
+import com.example.gajeontiming.alert.AlertRegistration;
 import com.example.gajeontiming.model.Product;
 import com.example.gajeontiming.model.ReportResponse;
 import com.example.gajeontiming.model.ReportResponse.NewsItem;
@@ -61,6 +62,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     // AI 분석 영역
     private ProgressBar aiProgress;
     private TextView aiState;
+    private final AlertRegistration alertRegistration = new AlertRegistration(this);
     private Button aiRetry;
     private View aiContent;
 
@@ -142,6 +144,10 @@ public class ProductDetailActivity extends AppCompatActivity {
         // 다음 단계에서 연결할 화면들
         findViewById(R.id.detail_timing_button).setOnClickListener(v -> openTiming());
         findViewById(R.id.detail_compare_button).setOnClickListener(v -> openCompare());
+        // 가격 알림 바로 등록: 목록에서 본 가격 기준 (가격을 모르면 목표가를 정할 수 없어 숨김)
+        View alertButton = findViewById(R.id.detail_alert_button);
+        alertButton.setVisibility(product.price > 0 ? View.VISIBLE : View.GONE);
+        alertButton.setOnClickListener(v -> alertRegistration.start(product.title, product.link, product.price, 0));
         // F-17 이 제품에 대한 질문을 입력창에 미리 넣어서 AI 상담을 연다
         findViewById(R.id.detail_ask_ai).setOnClickListener(v -> {
             Intent intent = new Intent(this, ChatActivity.class);
