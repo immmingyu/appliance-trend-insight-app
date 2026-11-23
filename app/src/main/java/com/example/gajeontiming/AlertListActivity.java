@@ -8,8 +8,9 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -26,15 +27,13 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.gajeontiming.adapter.AlertAdapter;
-import com.example.gajeontiming.alert.PriceCheckWorker;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.model.AlertModels;
 import com.example.gajeontiming.model.AlertModels.Alert;
 import com.example.gajeontiming.model.AuthModels;
-import com.example.gajeontiming.model.BestPriceResponse;
-import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.network.ApiErrors;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -48,12 +47,18 @@ import retrofit2.Response;
 /**
  * F-11 가격 알림 목록 화면 (로그인 필요).
  * 등록한 알림을 보여주고, 화면을 열 때마다 지금 최저가를 확인해 목표까지 얼마 남았는지 알려준다.
- * 알림 삭제, "지금 확인"(F-12 작업을 바로 실행)을 할 수 있다.
+ * 알림을 삭제할 수 있다. 목표 가격 도달 확인 · 알림은 서버가 매일 하고 FCM 푸시로 보낸다.
  */
 public class AlertListActivity extends AppCompatActivity {
 
+    /** 등록 직후 서버 가격 확인(10~20초)이 끝났을 즈음 목록을 한 번 더 불러온다 */
+    private static final long RECHECK_MS = 20_000;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private boolean recheckDone;
+
     private RecyclerView list;
     private ProgressBar progress;
+    private SwipeRefreshLayout swipe;
     private TextView stateText;
     private Button retryButton;
     private AlertAdapter adapter;
@@ -88,6 +93,12 @@ public class AlertListActivity extends AppCompatActivity {
 
         list = findViewById(R.id.alert_list);
         progress = findViewById(R.id.alert_progress);
+        swipe = findViewById(R.id.alert_swipe);
+        swipe.setOnRefreshListener(() -> {
+            recheckDone = false;   // 당겨서 새로고침하면 확인 중인 알림을 20초 뒤 한 번 더 본다
+            handler.removeCallbacksAndMessages(null);
+            loadAlerts();
+        });
         stateText = findViewById(R.id.alert_state);
         retryButton = findViewById(R.id.alert_retry);
 
@@ -161,7 +172,8 @@ public class AlertListActivity extends AppCompatActivity {
     // ── 목록 불러오기 ─────────────────────────────────────────
 
     private void loadAlerts() {
-        progress.setVisibility(View.VISIBLE);
+        // 당겨서 새로고침 · 자동 재확인 중에는 가운데 로딩 대신 위쪽 동그라미만
+        if (!swipe.isRefreshing() && adapter.getItemCount() == 0) progress.setVisibility(View.VISIBLE);
         stateText.setVisibility(View.GONE);
         retryButton.setVisibility(View.GONE);
 
@@ -170,6 +182,7 @@ public class AlertListActivity extends AppCompatActivity {
             public void onResponse(@NonNull Call<AlertModels.AlertListResponse> call,
                                    @NonNull Response<AlertModels.AlertListResponse> response) {
                 progress.setVisibility(View.GONE);
+                swipe.setRefreshing(false);
                 if (response.code() == 401) {                 // 로그인 만료
                     SessionManager.logout();
                     loginLauncher.launch(new Intent(AlertListActivity.this, LoginActivity.class));
@@ -177,7 +190,7 @@ public class AlertListActivity extends AppCompatActivity {
                 }
                 AlertModels.AlertListResponse body = response.body();
                 if (!response.isSuccessful() || body == null || body.alerts == null) {
-                    showState(getString(R.string.alert_failed), true);
+                    showLoadError();
                     return;
                 }
                 adapter.setItems(body.alerts);
@@ -192,35 +205,50 @@ public class AlertListActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Call<AlertModels.AlertListResponse> call, @NonNull Throwable t) {
                 progress.setVisibility(View.GONE);
-                showState(getString(R.string.alert_failed), true);
+                swipe.setRefreshing(false);
+                showLoadError();
             }
         });
     }
 
-    /** 알림마다 지금 최저가를 확인해 목록에 채운다 (앱을 열 때 하는 확인) */
-    private void loadCurrentPrices(List<Alert> alerts) {
-        for (Alert a : alerts) {
-            ApiClient.get().getBestPrice(a.productName, Categories.detect(a.productName))
-                    .enqueue(new Callback<BestPriceResponse>() {
-                        @Override
-                        public void onResponse(@NonNull Call<BestPriceResponse> call,
-                                               @NonNull Response<BestPriceResponse> response) {
-                            BestPriceResponse b = response.body();
-                            long price = (b != null && b.available) ? b.price : 0;
-                            // 등록 당시 가격과 2배 넘게 다르면 다른 상품으로 본다
-                            if (price > 0 && a.currentPrice > 0) {
-                                double ratio = price / a.currentPrice;
-                                if (ratio < 0.5 || ratio > 2.0) price = 0;
-                            }
-                            adapter.setCurrentPrice(a.alertId, price);
-                        }
-
-                        @Override
-                        public void onFailure(@NonNull Call<BestPriceResponse> call, @NonNull Throwable t) {
-                            adapter.setCurrentPrice(a.alertId, 0);
-                        }
-                    });
+    /** 처음 불러오기 실패는 가운데 안내 + 다시 시도, 이미 목록이 있으면(새로고침 실패) 목록은 두고 짧게 알린다 */
+    private void showLoadError() {
+        if (adapter.getItemCount() > 0) {
+            Toast.makeText(this, R.string.alert_failed, Toast.LENGTH_SHORT).show();
+        } else {
+            showState(getString(R.string.alert_failed), true);
         }
+    }
+
+    /**
+     * 알림마다 지금 최저가를 목록에 채운다. 서버가 확인한 가격(min_price)만 쓴다 (목표가 푸시와 같은 기준).
+     * 서버는 등록 직후 뒤에서 한 번 (10~20초), 그 뒤로는 매일 새벽 가격을 확인한다.
+     *   min_price 있음              → 지금 가격
+     *   min_price · last_updated 없음 → 아직 확인 전: "가격 확인 중이에요" + 잠시 뒤 목록 다시 불러오기 (한 번만)
+     *   last_updated만 있음          → 확인했지만 가격을 못 찾음: "지금 가격을 확인하지 못했어요"
+     */
+    private void loadCurrentPrices(List<Alert> alerts) {
+        boolean checking = false;
+        for (Alert a : alerts) {
+            if (a.minPrice != null && a.minPrice > 0) {
+                adapter.setCurrentPrice(a.alertId, Math.round(a.minPrice));
+            } else if (a.minPrice == null && a.lastUpdated == null) {
+                adapter.setCurrentPrice(a.alertId, AlertAdapter.CHECKING);
+                checking = true;
+            } else {
+                adapter.setCurrentPrice(a.alertId, 0);
+            }
+        }
+        if (checking && !recheckDone) {
+            recheckDone = true;
+            handler.postDelayed(this::loadAlerts, RECHECK_MS);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
 
     // ── 삭제 ────────────────────────────────────────────────
@@ -245,7 +273,6 @@ public class AlertListActivity extends AppCompatActivity {
                     return;
                 }
                 adapter.remove(alert);
-                PriceCheckWorker.forget(AlertListActivity.this, alert.alertId);
                 if (adapter.getItemCount() == 0) showState(getString(R.string.alert_empty), false);
             }
 
@@ -256,27 +283,10 @@ public class AlertListActivity extends AppCompatActivity {
         });
     }
 
-    // ── 메뉴: 지금 확인 ───────────────────────────────────────
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, 1, 0, R.string.alert_check_now)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        return true;
-    }
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             finish();
-            return true;
-        }
-        if (item.getItemId() == 1) {
-            // 하루 1회 확인 작업을 지금 한 번 실행 → 목표 도달 제품이 있으면 휴대폰 알림이 뜬다
-            PriceCheckWorker.runNow(this);
-            loadAlerts();
-            Toast.makeText(this, "가격을 확인하고 있어요. 목표에 도달한 제품이 있으면 알림이 와요",
-                    Toast.LENGTH_LONG).show();
             return true;
         }
         return super.onOptionsItemSelected(item);

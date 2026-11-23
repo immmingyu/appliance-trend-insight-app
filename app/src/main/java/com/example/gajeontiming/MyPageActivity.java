@@ -376,12 +376,10 @@ public class MyPageActivity extends AppCompatActivity implements AccountAware {
         dialog.show();
     }
 
-    /** 탈퇴 완료: 로그인 정보와 이 계정의 알림 기록을 지우고 로그아웃 상태로 다시 그린다 */
+    /** 탈퇴 완료: 로그인 정보를 지우고 로그아웃 상태로 다시 그린다 */
     private void onWithdrawn(AuthModels.MessageResponse body) {
         signOutSocial();
         SessionManager.logout();
-        // 가격 알림 "마지막으로 알린 가격" 기록 (PriceCheckWorker). 알림이 서버에서 지워졌으니 같이 비운다
-        getSharedPreferences("alert_notified", MODE_PRIVATE).edit().clear().apply();
         String msg = body != null && body.message != null ? body.message : "탈퇴가 완료되었어요";
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
         bindAccount();

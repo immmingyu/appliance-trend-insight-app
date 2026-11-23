@@ -18,6 +18,10 @@ public final class AlertModels {
         @SerializedName("current_price") public double currentPrice;   // 등록할 때의 가격
         @SerializedName("product_url") public String productUrl;
         @SerializedName("created_at") public String createdAt;
+        /** 서버가 매일 확인한 지금 최저가 (목표가 푸시도 이 값으로 판단). 아직 확인 전이면 null */
+        @SerializedName("min_price") public Double minPrice;
+        /** 서버가 마지막으로 가격을 확인한 시각. min_price와 함께 null이면 아직 한 번도 확인 전 */
+        @SerializedName("last_updated") public String lastUpdated;
     }
 
     /** GET /api/user/alerts */

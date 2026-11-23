@@ -29,7 +29,10 @@ public class AlertAdapter extends RecyclerView.Adapter<AlertAdapter.Holder> {
     }
 
     private final List<Alert> items = new ArrayList<>();
-    private final Map<Long, Long> nowPrices = new HashMap<>();   // alertId → 지금 최저가 (0이면 확인 실패)
+    /** setCurrentPrice에 넘기는 값: 서버가 아직 가격을 확인하기 전 (등록 직후 10~20초) */
+    public static final long CHECKING = -1;
+
+    private final Map<Long, Long> nowPrices = new HashMap<>();   // alertId → 지금 최저가 (0이면 확인 실패, CHECKING이면 확인 전)
     private final Listener listener;
     private final NumberFormat won = NumberFormat.getNumberInstance(Locale.KOREA);
 
@@ -76,8 +79,8 @@ public class AlertAdapter extends RecyclerView.Adapter<AlertAdapter.Holder> {
         h.registered.setText("등록할 때 " + won.format((long) a.currentPrice) + "원");
 
         Long now = nowPrices.get(a.alertId);
-        if (now == null) {
-            h.now.setText("지금 가격 확인 중…");
+        if (now == null || now == CHECKING) {
+            h.now.setText("가격 확인 중이에요");
             h.now.setTextColor(h.registered.getTextColors());
         } else if (now <= 0) {
             h.now.setText("지금 가격을 확인하지 못했어요");

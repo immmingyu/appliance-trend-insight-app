@@ -17,9 +17,6 @@ import com.example.gajeontiming.AlertListActivity;
 import com.example.gajeontiming.MainActivity;
 import com.example.gajeontiming.R;
 
-import java.text.NumberFormat;
-import java.util.Locale;
-
 /** 휴대폰 알림: F-12 가격 알림(누르면 가격 알림 목록) · 사업자 승인 결과(누르면 홈) */
 public final class AlertNotifier {
 
@@ -69,8 +66,11 @@ public final class AlertNotifier {
     }
 
 
-    public static void notifyPriceDrop(Context context, long alertId, String productName,
-                                       long price, long target) {
+    /**
+     * 서버 가격 알림 푸시(목표 가격 도달)를 앱을 쓰는 중에 받았을 때 직접 띄운다.
+     * 제목 · 내용은 서버 문구 그대로 ("목표 가격 도달" / "제품명 지금 ○원 (목표 ○원)"). 누르면 가격 알림 목록
+     */
+    public static void notifyPriceAlert(Context context, long alertId, String title, String text) {
         // 안드로이드 13부터는 사용자가 알림 권한을 허용해야 한다
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
@@ -78,17 +78,15 @@ public final class AlertNotifier {
             return;
         }
 
-        NumberFormat won = NumberFormat.getNumberInstance(Locale.KOREA);
         Intent open = new Intent(context, AlertListActivity.class);
         PendingIntent pending = PendingIntent.getActivity(context, (int) alertId, open,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("목표 가격 도달: " + won.format(price) + "원")
-                .setContentText(productName)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(
-                        productName + "\n지금 " + won.format(price) + "원 (목표 " + won.format(target) + "원)"))
+                .setContentTitle(title)
+                .setContentText(text)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
                 .setContentIntent(pending)
                 .setAutoCancel(true);
 
