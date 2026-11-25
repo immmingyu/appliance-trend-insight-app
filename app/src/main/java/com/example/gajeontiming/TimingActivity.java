@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.gajeontiming.alert.AlertRegistration;
+import com.example.gajeontiming.judge.TimingJudge;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.PricePositionResponse;
 import com.example.gajeontiming.model.Product;
@@ -221,6 +223,9 @@ public class TimingActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.timing_price)).setText(won.format(a.curMin) + "원");
         ((TextView) findViewById(R.id.timing_message)).setText(a.message);
 
+        // 확장: 가전무쌍 점수 (앱이 직접 계산하는 판단)
+        bindAppJudge(body);
+
         // ② 그래프
         TextView chartNote = findViewById(R.id.timing_chart_note);
         if (a.hasHistory && body.data != null && body.data.size() >= 2) {
@@ -260,6 +265,65 @@ public class TimingActivity extends AppCompatActivity {
     private void onAlertClick() {
         if (lastAnalysis == null) return;
         alertRegistration.start(product.title, product.link, lastAnalysis.curMin, lastAnalysis.histMin);
+    }
+
+    /**
+     * 확장: 서버 판단과 별도로, 앱이 30일 가격 · 흐름 · 검색 관심도 · 출시가 할인율로 점수를 매긴다.
+     * 계산은 TimingJudge(순수 Java, 단위 테스트 있음)가 하고, 여기서는 화면에 그리기만 한다.
+     */
+    private void bindAppJudge(TimingResponse body) {
+        View card = findViewById(R.id.judge_card);
+        Analysis a = body.analysis;
+        long[] prices = new long[body.data == null ? 0 : body.data.size()];
+        for (int i = 0; i < prices.length; i++) prices[i] = body.data.get(i).price;
+        Double searchDiff = a.searchSummary != null ? a.searchSummary.diffPct : null;
+
+        TimingJudge.Result r = TimingJudge.judge(prices, a.curMin, a.launchDiscPct, searchDiff);
+        if (r == null) {                       // 가격 기록이 없으면 카드를 숨긴다
+            card.setVisibility(View.GONE);
+            return;
+        }
+        card.setVisibility(View.VISIBLE);
+
+        int color = r.score >= 75 ? R.color.score_green
+                : r.score >= 55 ? R.color.score_blue
+                : r.score >= 40 ? R.color.score_yellow : R.color.score_red;
+        int c = ContextCompat.getColor(this, color);
+
+        TextView score = findViewById(R.id.judge_score);
+        score.setText(getString(R.string.judge_score, r.score));
+        score.setTextColor(c);
+        TextView grade = findViewById(R.id.judge_grade);
+        grade.setText(r.grade);
+        grade.setTextColor(c);
+        ProgressBar bar = findViewById(R.id.judge_bar);
+        bar.setProgress(r.score);
+        bar.setProgressTintList(android.content.res.ColorStateList.valueOf(c));
+
+        TextView unreliable = findViewById(R.id.judge_unreliable);
+        unreliable.setVisibility(r.reliable ? View.GONE : View.VISIBLE);
+        unreliable.setText(getString(R.string.judge_unreliable, prices.length));
+
+        // 근거: "+20  30일 평균보다 10.0% 저렴해요" (점수 영향이 큰 순서)
+        LinearLayout list = findViewById(R.id.judge_reasons);
+        list.removeAllViews();
+        int green = ContextCompat.getColor(this, R.color.score_green);
+        int red = ContextCompat.getColor(this, R.color.score_red);
+        for (TimingJudge.Reason reason : r.reasons) {
+            TextView row = new TextView(this);
+            String sign = reason.points > 0 ? "+" + reason.points : reason.points < 0 ? String.valueOf(reason.points) : "·";
+            android.text.SpannableString text = new android.text.SpannableString(sign + "  " + reason.text);
+            if (reason.points != 0) {
+                text.setSpan(new android.text.style.ForegroundColorSpan(reason.points > 0 ? green : red),
+                        0, sign.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                text.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                        0, sign.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            row.setText(text);
+            row.setTextSize(14);
+            row.setPadding(0, 4, 0, 4);
+            list.addView(row);
+        }
     }
 
     /** 30일 가격 꺾은선 그래프 + 평균가 기준선 */
