@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 확장 기능: 앱 자체 구매 판단 (가전무쌍 점수) -->
+<resources>
+    <string name="judge_title">가전무쌍 점수</string>
+    <string name="judge_subtitle">가격 위치 · 흐름 · 관심도 · 할인율을 앱이 직접 따져 본 점수예요</string>
+    <string name="judge_score">%1$d점</string>
+    <string name="judge_unreliable">가격 기록이 %1$d일뿐이라 참고용이에요</string>
+    <string name="judge_note">위 판단은 30일 평균 대비 가격 하나로 정하고, 이 점수는 여러 요인을 더해서 정해요. 두 판단이 다르면 아래 근거를 함께 보세요.</string>
+</resources>
