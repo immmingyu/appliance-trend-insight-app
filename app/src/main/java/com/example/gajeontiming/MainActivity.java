@@ -19,11 +19,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.activity.OnBackPressedCallback;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -34,18 +33,18 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.gajeontiming.adapter.RecentAdapter;
 import com.example.gajeontiming.adapter.TrendAdapter;
+import com.example.gajeontiming.alert.ApprovalCheckWorker;
+import com.example.gajeontiming.alert.PushTokens;
+import com.example.gajeontiming.auth.AccountAware;
+import com.example.gajeontiming.auth.AccountSync;
+import com.example.gajeontiming.auth.SessionManager;
+import com.example.gajeontiming.b2b.MarketSearchActivity;
+import com.example.gajeontiming.b2b.PriceMonitorActivity;
 import com.example.gajeontiming.data.RecentProductDb;
 import com.example.gajeontiming.data.TrendCache;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.TrendItem;
 import com.example.gajeontiming.model.TrendResponse;
-import com.example.gajeontiming.alert.ApprovalCheckWorker;
-import com.example.gajeontiming.alert.PushTokens;
-import com.example.gajeontiming.auth.AccountAware;
-import com.example.gajeontiming.b2b.MarketSearchActivity;
-import com.example.gajeontiming.b2b.PriceMonitorActivity;
-import com.example.gajeontiming.auth.AccountSync;
-import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.ui.Pulse;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -204,7 +203,8 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
             openProductList(name, name);   // 카테고리 제품 목록 → 제품을 누르면 상세(리포트)
             return true;
         }
-        if (id == R.id.drawer_recommend) openFromDrawer(RecommendActivity.class);
+        if (id == R.id.drawer_store) openFromDrawer(StoreModeActivity.class);          // 확장: 매장 모드
+        else if (id == R.id.drawer_recommend) openFromDrawer(RecommendActivity.class);
         else if (id == R.id.drawer_chat) openFromDrawer(ChatActivity.class);
         // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
         else if (id == R.id.drawer_alerts) openFromDrawer(AlertListActivity.class);

@@ -50,6 +50,11 @@
         <activity android:name=".CompareActivity" />
 
         <!-- F-16 모델명 스캔 (홈 검색창 옆 카메라 버튼, 상위 화면: 홈) -->
+        <!-- 확장 기능: 매장 모드 (홈 서랍 메뉴 · 모델명 스캔 화면에서 들어옴) -->
+        <activity
+            android:name=".StoreModeActivity"
+            android:parentActivityName=".MainActivity" />
+
         <activity
             android:name=".ScanActivity"
             android:parentActivityName=".MainActivity"

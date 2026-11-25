@@ -110,6 +110,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/scan_search" />
+
+                <!-- 확장: 같은 모델명으로 매장 모드 (판단 카드까지 바로) -->
+                <Button
+                    android:id="@+id/scan_store_mode"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/store_open_from_scan" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

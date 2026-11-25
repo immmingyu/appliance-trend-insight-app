@@ -95,6 +95,7 @@ public class ScanActivity extends AppCompatActivity {
                         .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                         .build()));
         findViewById(R.id.scan_search).setOnClickListener(v -> search());
+        findViewById(R.id.scan_store_mode).setOnClickListener(v -> openStoreMode());   // 확장: 매장 모드
 
         resultBox.setVisibility(View.GONE);
     }
@@ -193,6 +194,20 @@ public class ScanActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ProductListActivity.class);
         intent.putExtra(ProductListActivity.EXTRA_QUERY, query);
         intent.putExtra(ProductListActivity.EXTRA_CATEGORY, category);
+        startActivity(intent);
+    }
+
+    /** 확장: 고른 모델명으로 매장 모드를 열어 판단 카드까지 바로 본다 */
+    private void openStoreMode() {
+        String query = queryInput.getText().toString().trim();
+        if (query.isEmpty()) {
+            Toast.makeText(this, "검색할 모델명을 입력해 주세요", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(this, StoreModeActivity.class);
+        intent.putExtra(StoreModeActivity.EXTRA_QUERY, query);
+        intent.putExtra(StoreModeActivity.EXTRA_CATEGORY,
+                detectedCategory != null ? detectedCategory : Categories.detect(query));
         startActivity(intent);
     }
 
