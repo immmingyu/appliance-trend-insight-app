@@ -14,8 +14,10 @@ import java.util.Locale;
 import okhttp3.Cache;
 import okhttp3.CacheControl;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * F-19 오프라인 캐시.
@@ -69,10 +71,11 @@ public final class OfflineCache {
             try {
                 Response response = chain.proceed(request);
                 if (response.code() < 500) return response;           // 정상 · 4xx는 그대로
+                // 같은 요청을 다시 보내려면 앞 응답을 먼저 닫아야 한다 (안 닫으면 OkHttp가 예외 → 앱 종료).
+                // 저장본이 없을 때 서버 안내(503 detail)를 그대로 돌려주려고 내용은 먼저 읽어 둔다
+                Response error = copyAndClose(response);
                 Response cached = fromCache(chain, request);           // 서버 오류면 저장본이 있는지
-                if (cached == null) return response;
-                response.close();
-                return cached;
+                return cached != null ? cached : error;
             } catch (IOException e) {
                 if (chain.call().isCanceled()) throw e;               // 화면을 닫아 취소한 요청
                 Response cached = fromCache(chain, request);
@@ -80,6 +83,23 @@ public final class OfflineCache {
                 return cached;
             }
         };
+    }
+
+    /** 응답 내용을 메모리에 옮겨 담고 원래 응답은 닫는다 (오류 응답이라 내용이 작다) */
+    private static Response copyAndClose(Response response) throws IOException {
+        ResponseBody body = response.body();
+        if (body == null) {
+            response.close();
+            return response;
+        }
+        MediaType type = body.contentType();
+        byte[] bytes;
+        try {
+            bytes = body.bytes();   // 다 읽고 닫힌다
+        } finally {
+            response.close();
+        }
+        return response.newBuilder().body(ResponseBody.create(bytes, type)).build();
     }
 
     private static Response fromCache(Interceptor.Chain chain, Request request) throws IOException {
