@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 디자인 통일: 홈의 매장 모드 카드 -->
+<resources>
+    <string name="home_store_title">매장 모드</string>
+    <string name="home_store_desc">가격표를 찍으면 지금 사도 되는지 바로 알려드려요</string>
+    <string name="home_store_button">가격표 찍기</string>
+</resources>

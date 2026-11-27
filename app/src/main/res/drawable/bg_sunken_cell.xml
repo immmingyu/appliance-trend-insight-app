@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 카드 안에서 한 칸 들어간 영역 (숫자 요약 칸 등) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="@dimen/radius_sm" />
+    <solid android:color="@color/sunken" />
+</shape>
