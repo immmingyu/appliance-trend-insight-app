@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 확장 기능: 매장 모드 -->
+<resources>
+    <string name="store_title">매장 모드</string>
+    <string name="store_guide">매장 가격표를 찍으면 모델명을 읽어서 지금 사도 되는지 바로 알려드려요.\n모델명이 크고 선명하게 보이게 찍어 주세요.</string>
+    <string name="store_camera">가격표 찍기</string>
+    <string name="store_gallery">사진에서 고르기</string>
+    <string name="store_camera_failed">카메라를 열 수 없어요. 사진에서 골라 주세요</string>
+    <string name="store_reading">가격표 글자를 읽는 중…</string>
+    <string name="store_read_failed">사진을 읽지 못했어요. 다시 찍어 주세요.</string>
+    <string name="store_no_model">모델명처럼 보이는 글자를 찾지 못했어요. 모델명이 잘 보이게 다시 찍어 주세요.</string>
+    <string name="store_model_label">읽은 모델명 · 다르면 눌러서 바꾸기</string>
+    <string name="store_searching">‘%1$s’ 제품을 찾는 중…</string>
+    <string name="store_judging">최근 30일 가격으로 판단하는 중…\n처음 보는 제품은 20초 정도 걸려요.</string>
+    <string name="store_network">인터넷 연결을 확인해 주세요.</string>
+    <string name="store_candidates_label">이 제품이 아니면 다른 후보를 눌러 주세요</string>
+    <string name="store_not_exact">가격표의 ‘%1$s’와 모델명 뒷자리가 다른 제품이에요. 색상 · 구성이 다를 수 있어요.</string>
+    <string name="store_no_price_data">이 제품은 가격 기록이 부족해서 아직 판단하기 어려워요.</string>
+    <string name="store_price_mismatch">이 제품과 같은 상품의 가격 기록을 찾지 못해서 판단하지 않았어요. 다른 후보를 눌러 보세요.</string>
+    <string name="store_judge_title">가전무쌍 점수</string>
+    <string name="store_reference_only">참고용</string>
+    <string name="store_detail">자세히 보기</string>
+    <string name="store_alert">가격 알림</string>
+    <string name="store_retake">다시 찍기</string>
+    <string name="store_not_found">‘%1$s’ 제품을 찾지 못했어요.\n아래 검색어로 다시 찾거나 다시 찍어 주세요.</string>
+    <string name="store_only_accessories">‘%1$s’ 본품은 찾지 못하고 이 모델용 소모품만 검색됐어요.\n아래 검색어로 다시 찾아보세요.</string>
+    <string name="store_danawa">다나와에서 직접 찾아보기</string>
+    <string name="store_no_browser">링크를 열 수 있는 앱이 없어요</string>
+    <string name="store_open_from_scan">이 모델명으로 바로 판단하기 (매장 모드)</string>
+</resources>
