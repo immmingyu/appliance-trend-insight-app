@@ -44,7 +44,7 @@
 
         <Button
             android:id="@+id/alert_notify_settings"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.Gajeon.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/alert_notify_settings"

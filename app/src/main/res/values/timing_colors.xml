@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 구매 판단 색: 최고 · 좋음 · 보통 · 대기 -->
-    <color name="score_green">#2E7D32</color>
-    <color name="score_blue">#1565C0</color>
-    <color name="score_yellow">#B26A00</color>
-    <color name="score_red">#C62828</color>
-    <!-- 그래프 -->
-    <color name="timing_line">#1E88E5</color>
-    <color name="timing_chart_text">#757575</color>
+    <!--
+        구매 판단 색: 최고 · 좋음 · 보통 · 대기 (디자인 시스템 verdict-*).
+        "보통"은 대표 주황과 겹치지 않게 무채색이다 (예전 주황에서 바꿈). score_yellow 이름은 코드 호환용.
+    -->
+    <color name="score_green">#15803D</color>
+    <color name="score_blue">#1D4ED8</color>
+    <color name="score_yellow">#52525B</color>
+    <color name="score_red">#B91C1C</color>
+    <!-- 그래프: 가격 선은 대표 주황, 축 글자는 가장 약한 글자색 -->
+    <color name="timing_line">#C2410C</color>
+    <color name="timing_chart_text">#736C66</color>
 </resources>

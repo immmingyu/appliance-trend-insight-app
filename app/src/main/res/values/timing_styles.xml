@@ -5,14 +5,16 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/ink_2</item>
     </style>
 
     <style name="StatValue">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginTop">2dp</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/ink</item>
     </style>
 
     <style name="StatCell">
@@ -21,7 +23,11 @@
         <item name="android:layout_columnWeight">1</item>
         <item name="android:orientation">vertical</item>
         <!-- paddingVertical은 API 26부터라 Android 7(minSdk 24)에서도 먹도록 위 · 아래로 나눠 쓴다 -->
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingBottom">8dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:background">@drawable/bg_sunken_cell</item>
     </style>
 </resources>

@@ -1,27 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    밝은 화면(기본)용 색. 다크 모드 값은 values-night/colors.xml에 같은 이름으로 있다.
-    색을 새로 쓸 때는 레이아웃에 #코드를 직접 쓰지 말고 여기에 이름을 붙여서 쓸 것.
+    가전무쌍 디자인 시스템 색 (밝은 화면). 다크 모드 값은 values-night/colors.xml에 같은 이름으로 있다.
+    기준: https://claude.ai/artifact/5ZpTJbze78TDbpx7GinTLJ (가전무쌍 디자인 시스템)
+    원칙: 주황(brand)은 행동(주 버튼 · 선택 · 로고)에만, 판단색(verdict_*)은 판단에만 쓴다.
+    레이아웃에 #색코드를 직접 쓰지 말고 여기 이름을 쓸 것.
 -->
 <resources>
-    <!-- 브랜드 보라를 "글씨 · 아이콘"에 쓸 때 (배경 채우기는 splash_logo) -->
-    <color name="brand_text">#6750A4</color>
-    <!-- 점수 색(score_*) 배지 위의 글씨 -->
+    <!-- ── 대표 주황 ── -->
+    <color name="brand">#C2410C</color>
+    <color name="brand_pressed">#9A3412</color>
+    <color name="on_brand">#FFFFFF</color>
+    <color name="brand_container">#FFF1E7</color>
+    <color name="on_brand_container">#7C2D12</color>
+
+    <!-- ── 바탕 · 선 ── -->
+    <color name="page">#FAFAF9</color>          <!-- 화면 바탕 -->
+    <color name="card">#FFFFFF</color>          <!-- 카드 · 입력칸 -->
+    <color name="sunken">#F3F2F0</color>        <!-- 카드 안 들어간 칸 · 스켈레톤 -->
+    <color name="line">#E7E5E4</color>          <!-- 카드 테두리 · 구분선 (장식) -->
+    <color name="line_strong">#8C857F</color>   <!-- 입력칸 · 보조 버튼 윤곽 -->
+
+    <!-- ── 글자 ── -->
+    <color name="ink">#1C1917</color>
+    <color name="ink_2">#57534E</color>
+    <color name="ink_3">#736C66</color>
+
+    <!-- ── 판단 (최고 · 좋음 · 보통 · 대기) — 값은 timing_colors.xml의 score_* 와 같다 ── -->
+    <color name="verdict_best">#15803D</color>
+    <color name="verdict_good">#1D4ED8</color>
+    <color name="verdict_hold">#52525B</color>
+    <color name="verdict_wait">#B91C1C</color>
+
+    <!-- ── 주의 안내 상자 (리콜 · 모델명 뒷자리 다름 · 넓혀서 찾음 · 저장된 결과) ── -->
+    <color name="warn_container">#FEF3C7</color>
+    <color name="on_warn_container">#92400E</color>
+
+    <!-- ── 예전부터 쓰던 이름 (값만 새 규칙으로) ── -->
+    <color name="brand_text">@color/brand</color>
     <color name="on_score">#FFFFFF</color>
-    <!-- AI 상담 말풍선 -->
-    <color name="chat_ai_bubble">#F1F3F4</color>
-    <!-- "넓혀서 찾았어요" · AI 주의 같은 안내 상자 -->
-    <color name="notice_bg">#FFF4E5</color>
-    <color name="notice_text">#8A4B00</color>
-    <!-- 앱 소개 화면의 현재 페이지가 아닌 점 -->
-    <color name="dot_inactive">#D0C4F0</color>
-    <!-- 카카오 로그인 버튼 (카카오 디자인 가이드: 배경 #FEE500 · 글자 검정 85%, 다크 모드에서도 같은 색) -->
+    <color name="chat_ai_bubble">@color/sunken</color>
+    <color name="notice_bg">@color/warn_container</color>
+    <color name="notice_text">@color/on_warn_container</color>
+    <color name="dot_inactive">#F4C9AE</color>
+    <color name="monitor_neutral">@color/ink_3</color>
+
+    <!-- 제품 사진이 없을 때 기본 이미지 아이콘 (팀원 #41 커밋에서 빠져 있던 색) -->
+    <color name="image_placeholder">#C9C4BF</color>
+
+    <!-- 카카오 · 구글 로그인 버튼은 각 회사 브랜드 가이드 색 그대로 -->
     <color name="kakao_container">#FEE500</color>
     <color name="kakao_label">#D9000000</color>
-    <!-- Google 로그인 버튼 (Google 브랜드 가이드: 밝은 화면은 흰 배경 · 테두리 #747775) -->
     <color name="google_container">#FFFFFF</color>
     <color name="google_label">#1F1F1F</color>
     <color name="google_stroke">#747775</color>
-    <!-- 가격 모니터 보합 · 데이터 부족 신호 -->
-    <color name="monitor_neutral">#757575</color>
 </resources>

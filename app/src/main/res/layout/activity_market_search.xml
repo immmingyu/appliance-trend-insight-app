@@ -52,42 +52,42 @@
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/market_sort_recommended"
-                    style="@style/Widget.Material3.Chip.Filter"
+                    style="@style/Widget.Gajeon.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/market_sort_recommended" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/market_sort_popular"
-                    style="@style/Widget.Material3.Chip.Filter"
+                    style="@style/Widget.Gajeon.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/market_sort_popular" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/market_sort_latest"
-                    style="@style/Widget.Material3.Chip.Filter"
+                    style="@style/Widget.Gajeon.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/market_sort_latest" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/market_sort_low"
-                    style="@style/Widget.Material3.Chip.Filter"
+                    style="@style/Widget.Gajeon.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/market_sort_low" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/market_sort_high"
-                    style="@style/Widget.Material3.Chip.Filter"
+                    style="@style/Widget.Gajeon.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/market_sort_high" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/market_sort_energy"
-                    style="@style/Widget.Material3.Chip.Filter"
+                    style="@style/Widget.Gajeon.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/market_sort_energy" />

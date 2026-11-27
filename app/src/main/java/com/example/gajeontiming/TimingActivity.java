@@ -1,6 +1,5 @@
 package com.example.gajeontiming;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -383,7 +382,7 @@ public class TimingActivity extends AppCompatActivity {
         // 30일 평균 기준선: 선 아래면 평균보다 싼 날
         y.removeAllLimitLines();
         LimitLine avgLine = new LimitLine(avg, "30일 평균");
-        avgLine.setLineColor(Color.GRAY);
+        avgLine.setLineColor(textColor);   // 디자인 시스템 ink_3 (timing_chart_text)
         avgLine.setLineWidth(1f);
         avgLine.enableDashedLine(10f, 8f, 0f);
         avgLine.setTextColor(textColor);

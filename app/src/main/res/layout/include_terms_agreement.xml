@@ -7,7 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardCornerRadius="12dp"
+    app:cardCornerRadius="@dimen/radius_md"
     app:cardElevation="0dp"
     app:strokeColor="?attr/colorOutlineVariant"
     app:strokeWidth="1dp">
@@ -48,7 +48,7 @@
 
             <Button
                 android:id="@+id/terms_view_terms"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.Gajeon.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/signup_view" />
@@ -70,7 +70,7 @@
 
             <Button
                 android:id="@+id/terms_view_privacy"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.Gajeon.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/signup_view" />

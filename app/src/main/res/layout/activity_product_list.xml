@@ -95,37 +95,44 @@
 
         <com.google.android.material.chip.Chip
             android:id="@+id/sort_sim"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/Widget.Gajeon.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/sort_sim" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/sort_low"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/Widget.Gajeon.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/sort_low" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/sort_high"
-            style="@style/Widget.Material3.Chip.Filter"
+            style="@style/Widget.Gajeon.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/sort_high" />
     </com.google.android.material.chip.ChipGroup>
 
-    <!-- 원래 검색어로 못 찾아 넓혀서 찾았을 때 안내 -->
+    <!-- 다나와 점검 중 저장된 상품 정보를 보여줄 때 안내 (StaleNotice, 팀원 #41 커밋에서 빠져 있던 줄) -->
     <TextView
-        android:id="@+id/product_fallback_notice"
+        android:id="@+id/product_stale_notice"
+        style="@style/Gajeon.WarnBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="4dp"
-        android:background="@color/notice_bg"
-        android:padding="10dp"
-        android:textColor="@color/notice_text"
-        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <!-- 원래 검색어로 못 찾아 넓혀서 찾았을 때 안내 -->
+    <TextView
+        android:id="@+id/product_fallback_notice"
+        style="@style/Gajeon.WarnBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="4dp"
         android:visibility="gone" />
 
     <FrameLayout
@@ -218,7 +225,7 @@
 
             <Button
                 android:id="@+id/product_danawa"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.Gajeon.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"

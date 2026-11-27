@@ -1,30 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    다크 모드 색. 어두운 배경에서 글씨가 읽히도록(대비 4.5:1 이상) 밝은 톤으로 바꾼다.
-    이름은 values/의 colors.xml · splash.xml · timing_colors.xml과 같다.
+    가전무쌍 디자인 시스템 색 (다크 모드). 이름은 values/의 colors.xml · splash.xml · timing_colors.xml과 같다.
+    어두운 바탕에서 글자 대비 4.5:1 이상이 되도록 밝은 톤을 쓴다.
 -->
 <resources>
-    <color name="brand_text">#D0BCFF</color>
-    <color name="on_score">#1C1B1F</color>
-    <color name="chat_ai_bubble">#2D2C31</color>
-    <color name="notice_bg">#3A2A12</color>
-    <color name="notice_text">#FFCC80</color>
-    <color name="dot_inactive">#4A4458</color>
+    <color name="brand">#FB923C</color>
+    <color name="brand_pressed">#FDBA74</color>
+    <color name="on_brand">#1C1917</color>
+    <color name="brand_container">#431407</color>
+    <color name="on_brand_container">#FED7AA</color>
 
-    <!-- splash.xml: 연보라 배경은 어두운 보라로. splash_logo(진한 보라 채우기 + 흰 글씨)는 그대로 둔다 -->
-    <color name="splash_background">#2A2340</color>
+    <color name="page">#121110</color>
+    <color name="card">#1C1A19</color>
+    <color name="sunken">#262321</color>
+    <color name="line">#3A3633</color>
+    <color name="line_strong">#78716C</color>
 
-    <!-- timing_colors.xml: 점수 · 그래프 색 -->
-    <color name="score_green">#81C995</color>
-    <color name="score_blue">#8AB4F8</color>
-    <color name="score_yellow">#FDD663</color>
-    <color name="score_red">#F28B82</color>
-    <color name="timing_line">#8AB4F8</color>
-    <color name="timing_chart_text">#BDBDBD</color>
+    <color name="ink">#F5F5F4</color>
+    <color name="ink_2">#D6D3D1</color>
+    <color name="ink_3">#A8A29E</color>
+
+    <color name="verdict_best">#4ADE80</color>
+    <color name="verdict_good">#93C5FD</color>
+    <color name="verdict_hold">#D4D4D8</color>
+    <color name="verdict_wait">#FCA5A5</color>
+
+    <color name="warn_container">#3B2A0B</color>
+    <color name="on_warn_container">#FCD34D</color>
+
+    <color name="on_score">#1C1917</color>
+    <color name="dot_inactive">#5A3A26</color>
+
+    <color name="image_placeholder">#57524D</color>
+
+    <!-- splash.xml -->
+    <color name="splash_background">#121110</color>
+    <!-- timing_colors.xml: 판단 · 그래프 -->
+    <color name="score_green">#4ADE80</color>
+    <color name="score_blue">#93C5FD</color>
+    <color name="score_yellow">#D4D4D8</color>
+    <color name="score_red">#FCA5A5</color>
+    <color name="timing_line">#FB923C</color>
+    <color name="timing_chart_text">#A8A29E</color>
 
     <!-- Google 로그인 버튼 어두운 버전 (Google 브랜드 가이드) -->
     <color name="google_container">#131314</color>
     <color name="google_label">#E3E3E3</color>
     <color name="google_stroke">#8E918F</color>
-    <color name="monitor_neutral">#9E9E9E</color>
 </resources>

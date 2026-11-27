@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 시작 화면 색 -->
-    <color name="splash_background">#EDE4FF</color>   <!-- 연한 보라 -->
-    <color name="splash_logo">#6750A4</color>         <!-- 로고 카드 (진한 보라) -->
+    <color name="splash_background">#FFF1E7</color>   <!-- 옅은 주황 (brand_container) -->
+    <color name="splash_logo">#C2410C</color>         <!-- 로고 카드 (대표 주황, 밝은 · 다크 공통) -->
 
     <!--
         F-01 시작 화면 테마 (androidx core-splashscreen).

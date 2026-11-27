@@ -14,7 +14,7 @@
         android:background="@drawable/bg_bubble_user"
         android:paddingHorizontal="14dp"
         android:paddingVertical="10dp"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/on_brand"
         android:textIsSelectable="true"
         android:textSize="15sp" />
 </FrameLayout>

@@ -53,7 +53,7 @@
 
                     <Button
                         android:id="@+id/store_gallery"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.Gajeon.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -103,42 +103,21 @@
                 android:gravity="center"
                 android:visibility="gone" />
 
-            <!-- 다른 후보 -->
-            <LinearLayout
-                android:id="@+id/store_candidate_box"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/store_candidates_label"
-                    android:textSize="12sp" />
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/store_candidate_chips"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:singleSelection="true" />
-            </LinearLayout>
-
             <!-- ② 판단 카드 -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/store_result"
+                style="@style/Widget.Gajeon.Card.Hero"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:visibility="gone"
-                app:cardCornerRadius="16dp">
+                app:cardCornerRadius="@dimen/radius_lg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -173,7 +152,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:textSize="20sp"
+                                android:textSize="30sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
                     </LinearLayout>
@@ -183,9 +162,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:background="#FFF4E5"
+                        android:background="@drawable/bg_warn"
                         android:padding="8dp"
-                        android:textColor="#8A4B00"
+                        android:textColor="@color/on_warn_container"
                         android:textSize="12sp"
                         android:visibility="gone" />
 
@@ -196,10 +175,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/bg_badge"
-                        android:paddingHorizontal="14dp"
-                        android:paddingVertical="6dp"
-                        android:textColor="#FFFFFF"
-                        android:textSize="16sp"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:textColor="@color/on_score"
+                        android:textSize="17sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -273,7 +252,7 @@
 
                         <Button
                             android:id="@+id/store_alert"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            style="@style/Widget.Gajeon.Button.Outlined"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -282,12 +261,34 @@
 
                     <Button
                         android:id="@+id/store_retake"
-                        style="@style/Widget.Material3.Button.TextButton"
+                        style="@style/Widget.Gajeon.Button.Text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/store_retake" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- 다른 후보 -->
+            <LinearLayout
+                android:id="@+id/store_candidate_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/store_candidates_label"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/store_candidate_chips"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true" />
+            </LinearLayout>
 
             <!-- ③ 못 찾았을 때 -->
             <LinearLayout
@@ -306,7 +307,7 @@
 
                 <Button
                     android:id="@+id/store_danawa"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.Gajeon.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -314,7 +315,7 @@
 
                 <Button
                     android:id="@+id/store_retake_nf"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    style="@style/Widget.Gajeon.Button.Outlined"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/store_retake" />

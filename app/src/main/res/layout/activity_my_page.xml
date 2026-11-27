@@ -27,7 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                app:cardCornerRadius="12dp">
+                app:cardCornerRadius="@dimen/radius_md">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -103,7 +103,7 @@
 
                             <Button
                                 android:id="@+id/mypage_logout"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                style="@style/Widget.Gajeon.Button.Outlined"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
@@ -113,7 +113,7 @@
                         <!-- 비밀번호 변경: 이메일 회원만 보인다 (소셜 회원은 비밀번호가 없음) -->
                         <Button
                             android:id="@+id/mypage_password"
-                            style="@style/Widget.Material3.Button.TextButton"
+                            style="@style/Widget.Gajeon.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
@@ -164,7 +164,7 @@
 
                 <Button
                     android:id="@+id/mypage_recent_clear"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.Gajeon.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/recent_clear" />
@@ -194,7 +194,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                app:cardCornerRadius="12dp">
+                app:cardCornerRadius="@dimen/radius_md">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -226,7 +226,7 @@
             <!-- 회원 탈퇴: 눈에 덜 띄게 맨 아래 작은 글씨로 (로그인했을 때만 보임) -->
             <Button
                 android:id="@+id/mypage_withdraw"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.Gajeon.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"

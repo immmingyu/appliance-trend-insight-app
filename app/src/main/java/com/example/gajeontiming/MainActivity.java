@@ -112,6 +112,11 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
         searchButton.setOnClickListener(v -> search());
         findViewById(R.id.home_scan_button).setOnClickListener(v ->
                 startActivity(new Intent(this, ScanActivity.class)));   // F-16 모델명 스캔
+        // 확장: 홈의 매장 모드 카드 → 매장 모드 (카드 전체와 버튼 모두)
+        findViewById(R.id.home_store_card).setOnClickListener(v ->
+                startActivity(new Intent(this, StoreModeActivity.class)));
+        findViewById(R.id.home_store_button).setOnClickListener(v ->
+                startActivity(new Intent(this, StoreModeActivity.class)));
         searchInput.setOnEditorActionListener((v, actionId, event) -> {
             boolean enter = event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
                     && event.getAction() == KeyEvent.ACTION_DOWN;
