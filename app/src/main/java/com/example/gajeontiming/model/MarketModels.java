@@ -18,6 +18,9 @@ public final class MarketModels {
     public static class ProductSearch {
         public String query;
         public List<SearchItem> items;
+        // 다나와 장애 때 저장된 결과로 응답하면 붙는다 (정상이면 null)
+        public Boolean stale;
+        @SerializedName("stale_at") public String staleAt;
     }
 
     public static class SearchItem {

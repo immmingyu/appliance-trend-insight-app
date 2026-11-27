@@ -27,6 +27,7 @@ import com.example.gajeontiming.model.Product;
 import com.example.gajeontiming.model.ProductListResponse;
 import com.example.gajeontiming.network.ApiClient;
 import com.example.gajeontiming.network.ApiErrors;
+import com.example.gajeontiming.network.StaleNotice;
 import com.example.gajeontiming.scan.AccessoryFilter;
 import com.example.gajeontiming.scan.ModelNameExtractor;
 import com.example.gajeontiming.scan.SearchSuggester;
@@ -75,6 +76,7 @@ public class ProductListActivity extends AppCompatActivity {
     private final List<Attempt> attempts = new ArrayList<>();
     private int attemptIndex = 0;
     private TextView fallbackNotice;
+    private TextView staleNotice;            // 다나와 점검 중 저장된 정보 안내
     private ChipGroup suggestGroup;          // 본품을 못 찾았을 때 다음 검색어 제안
     private Button danawaButton;             // 다나와에서 직접 보기
     private final List<String> removedTitles = new ArrayList<>();   // 소모품으로 걸러낸 제목들
@@ -129,6 +131,7 @@ public class ProductListActivity extends AppCompatActivity {
         stateText = findViewById(R.id.product_state_text);
         retryButton = findViewById(R.id.product_retry);
         fallbackNotice = findViewById(R.id.product_fallback_notice);
+        staleNotice = findViewById(R.id.product_stale_notice);
         suggestGroup = findViewById(R.id.product_suggest_group);
         danawaButton = findViewById(R.id.product_danawa);
         danawaButton.setOnClickListener(v -> openDanawa());
@@ -259,6 +262,12 @@ public class ProductListActivity extends AppCompatActivity {
         return kept;
     }
 
+    /** 다나와 점검으로 저장된 정보를 받았으면 목록 위에 언제 기준인지 알린다 */
+    private void showStaleNotice(String text) {
+        staleNotice.setText(text);
+        staleNotice.setVisibility(text != null ? View.VISIBLE : View.GONE);
+    }
+
     /** 비교의 첫 제품은 B 후보에서 뺀다 */
     private List<Product> removeExcluded(List<Product> items) {
         if (items == null || exclude == null) return items;
@@ -339,6 +348,7 @@ public class ProductListActivity extends AppCompatActivity {
         attemptIndex = 0;
         removedTitles.clear();
         fallbackNotice.setVisibility(View.GONE);
+        staleNotice.setVisibility(View.GONE);
         suggestGroup.setVisibility(View.GONE);
         danawaButton.setVisibility(View.GONE);
         loadPage(1);
@@ -365,6 +375,7 @@ public class ProductListActivity extends AppCompatActivity {
                 }
                 List<Product> items = body.items;
                 page = target;
+                if (target == 1) showStaleNotice(StaleNotice.message(body.stale, body.staleAt));
                 // 한 페이지를 꽉 채워 오지 않았으면 마지막 페이지로 본다
                 hasMore = items != null && items.size() >= PAGE_SIZE;
 
