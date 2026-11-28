@@ -34,6 +34,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -163,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
     private void setupDrawer(MaterialToolbar toolbar) {
         drawer = findViewById(R.id.home_drawer);
         drawer.setDrawerElevation(0f);   // 그림자 없음
+        applyDrawerInsets();
         toolbar.setNavigationOnClickListener(v -> drawer.openDrawer(GravityCompat.START));
 
         // ① 머리 영역 (로그인했을 때만 마이페이지로)
@@ -238,6 +241,23 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
             public void onDrawerClosed(@NonNull View v) {
                 closeDrawer.setEnabled(false);
             }
+        });
+    }
+
+    /**
+     * 머리 영역이 상태 표시줄 · 카메라 구멍 밑으로 들어가지 않게, 그 높이만큼 위쪽 패딩을 더한다.
+     * NavigationView가 시스템 여백을 받아 자식에게 넘기지 않으므로 NavigationView에서 받는다.
+     * (기기 · 회전마다 값이 달라서 숫자로 고정하지 않는다)
+     */
+    private void applyDrawerInsets() {
+        View header = findViewById(R.id.drawer_header);
+        int baseTop = header.getPaddingTop();
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.home_nav), (v, insets) -> {
+            int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()
+                    | WindowInsetsCompat.Type.displayCutout()).top;
+            header.setPadding(header.getPaddingLeft(), baseTop + top,
+                    header.getPaddingRight(), header.getPaddingBottom());
+            return insets;
         });
     }
 
