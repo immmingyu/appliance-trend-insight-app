@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ☰ 메뉴 전체 (NavigationView 안에 직접 넣는다. 기본 메뉴 · 헤더는 쓰지 않는다)
+    위에서부터: 머리 영역 → 요약 3칸(로그인 전에는 로그인 카드) → 매장 모드 버튼
+    → 둘러보기 · AI 도우미 · 비즈니스(승인된 사업자만) → 맨 아래 마이페이지 · 고객센터 · 약관
+    내용 채우기와 클릭은 MainActivity의 "☰ 메뉴" 부분.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/drawer_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/space_3"
+            android:paddingTop="@dimen/space_3"
+            android:paddingBottom="@dimen/space_4">
+
+            <!-- ① 머리 영역: 머리글자 · 이름 · 등급 줄 · 닫기 (누르면 마이페이지) -->
+            <LinearLayout
+                android:id="@+id/drawer_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/space_1">
+
+                <TextView
+                    android:id="@+id/drawer_avatar"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_drawer_avatar"
+                    android:gravity="center"
+                    android:textAppearance="@style/TextAppearance.Gajeon.TitleSection"
+                    android:textColor="@color/brand_text" />
+
+                <LinearLayout
+                    android:id="@+id/drawer_user_box"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_3"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/drawer_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="@style/TextAppearance.Gajeon.TitleSection" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/drawer_tier"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.Gajeon.Caption" />
+
+                        <!-- 무료 개인 회원만 -->
+                        <TextView
+                            android:id="@+id/drawer_upgrade"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/space_1"
+                            android:text="@string/drawer_upgrade"
+                            android:textAppearance="@style/TextAppearance.Gajeon.Caption"
+                            android:textColor="@color/brand_text"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 로그인 전: 머리글자 · 이름 대신 앱 이름 -->
+                <TextView
+                    android:id="@+id/drawer_brand"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:paddingStart="@dimen/space_2"
+                    android:text="@string/app_name"
+                    android:textAppearance="@style/TextAppearance.Gajeon.TitleScreen"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/drawer_close"
+                    android:layout_width="@dimen/touch_min"
+                    android:layout_height="@dimen/touch_min"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/drawer_close"
+                    android:src="@drawable/ic_close"
+                    app:tint="@color/ink" />
+            </LinearLayout>
+
+            <!-- ② 요약 3칸: 가격 알림 · 목표가 도달(사업자는 시장 알림이 생기면 그걸로) · 최근 본 제품 -->
+            <LinearLayout
+                android:id="@+id/drawer_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_3"
+                android:background="@drawable/bg_drawer_summary"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/space_1">
+
+                <LinearLayout
+                    android:id="@+id/drawer_sum_alerts"
+                    style="@style/DrawerSummaryCell">
+
+                    <TextView
+                        style="@style/DrawerSummaryLabel"
+                        android:text="@string/drawer_sum_alerts" />
+
+                    <TextView
+                        android:id="@+id/drawer_sum_alerts_value"
+                        style="@style/DrawerSummaryValue" />
+                </LinearLayout>
+
+                <View style="@style/DrawerSummaryDivider" />
+
+                <LinearLayout
+                    android:id="@+id/drawer_sum_middle"
+                    style="@style/DrawerSummaryCell">
+
+                    <TextView
+                        android:id="@+id/drawer_sum_middle_label"
+                        style="@style/DrawerSummaryLabel"
+                        android:text="@string/drawer_sum_reached" />
+
+                    <TextView
+                        android:id="@+id/drawer_sum_middle_value"
+                        style="@style/DrawerSummaryValue" />
+                </LinearLayout>
+
+                <View style="@style/DrawerSummaryDivider" />
+
+                <LinearLayout
+                    android:id="@+id/drawer_sum_recent"
+                    style="@style/DrawerSummaryCell">
+
+                    <TextView
+                        style="@style/DrawerSummaryLabel"
+                        android:text="@string/drawer_sum_recent" />
+
+                    <TextView
+                        android:id="@+id/drawer_sum_recent_value"
+                        style="@style/DrawerSummaryValue" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ② 로그인 전: 요약 칸 대신 로그인 카드 -->
+            <LinearLayout
+                android:id="@+id/drawer_guest"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_3"
+                android:background="@drawable/bg_drawer_summary"
+                android:orientation="vertical"
+                android:padding="@dimen/space_4"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/drawer_guest_title"
+                    android:textAppearance="@style/TextAppearance.Gajeon.Label" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_2"
+                    android:text="@string/drawer_guest_desc"
+                    android:textAppearance="@style/TextAppearance.Gajeon.Caption" />
+
+                <Button
+                    android:id="@+id/drawer_login"
+                    style="@style/Widget.Gajeon.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_3"
+                    android:text="@string/drawer_guest_button" />
+            </LinearLayout>
+
+            <!-- ③ 매장 모드: 메뉴 안에서 유일한 주황 채움 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/drawer_store"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_3"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/brand"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="64dp"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/space_4"
+                        android:paddingVertical="@dimen/space_3">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_scan"
+                            app:tint="@color/on_brand" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/space_3"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/store_title"
+                                android:textAppearance="@style/TextAppearance.Gajeon.TitleSection"
+                                android:textColor="@color/on_brand" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/drawer_store_desc"
+                                android:textAppearance="@style/TextAppearance.Gajeon.Caption"
+                                android:textColor="@color/on_brand" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="@color/on_brand" />
+                    </LinearLayout>
+
+                    <!-- 마지막 판단 결과 (있을 때만): 최근 찍은 제품 · 모델명 · 판단 배지 -->
+                    <LinearLayout
+                        android:id="@+id/drawer_store_last"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_drawer_store_strip"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/space_4"
+                        android:paddingVertical="@dimen/space_2"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/drawer_store_last"
+                            android:textAppearance="@style/TextAppearance.Gajeon.Caption"
+                            android:textColor="@color/on_brand" />
+
+                        <TextView
+                            android:id="@+id/drawer_store_model"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/space_2"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textAppearance="@style/TextAppearance.Gajeon.Caption"
+                            android:textColor="@color/on_brand"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/drawer_store_verdict"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/space_2"
+                            android:background="@drawable/bg_badge"
+                            android:paddingHorizontal="@dimen/space_2"
+                            android:paddingVertical="2dp"
+                            android:textAppearance="@style/TextAppearance.Gajeon.Caption"
+                            android:textColor="@color/on_score"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ④ 둘러보기 -->
+            <TextView
+                style="@style/DrawerSectionTitle"
+                android:text="@string/drawer_section_browse" />
+
+            <include
+                android:id="@+id/drawer_row_products"
+                layout="@layout/item_drawer_row" />
+
+            <!-- 품목 칩 (Categories.ALL을 코드에서 넣는다). 마지막에 본 품목만 선택 상태 -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/drawer_category_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="52dp"
+                android:paddingEnd="@dimen/space_2"
+                app:chipSpacingVertical="0dp" />
+
+            <!-- ④ AI 도우미 -->
+            <TextView
+                style="@style/DrawerSectionTitle"
+                android:text="@string/drawer_section_ai" />
+
+            <include
+                android:id="@+id/drawer_row_recommend"
+                layout="@layout/item_drawer_row" />
+
+            <include
+                android:id="@+id/drawer_row_chat"
+                layout="@layout/item_drawer_row" />
+
+            <include
+                android:id="@+id/drawer_row_alerts"
+                layout="@layout/item_drawer_row" />
+
+            <!-- ④ 비즈니스: 승인된 사업자 회원만 -->
+            <LinearLayout
+                android:id="@+id/drawer_business"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/DrawerSectionTitle"
+                    android:text="@string/drawer_business" />
+
+                <include
+                    android:id="@+id/drawer_row_monitor"
+                    layout="@layout/item_drawer_row" />
+
+                <include
+                    android:id="@+id/drawer_row_market"
+                    layout="@layout/item_drawer_row" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- ⑥ 맨 아래: 마이페이지 · 고객센터 · 약관 (위에 선 1dp) -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/space_2"
+        android:paddingVertical="@dimen/space_1">
+
+        <LinearLayout
+            android:id="@+id/drawer_mypage"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/touch_min"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/space_2">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_person"
+                app:tint="@color/ink_2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_2"
+                android:text="@string/mypage_title"
+                android:textAppearance="@style/TextAppearance.Gajeon.Caption" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/drawer_support"
+            style="@style/DrawerFooterLink"
+            android:text="@string/drawer_support" />
+
+        <TextView
+            android:id="@+id/drawer_terms"
+            style="@style/DrawerFooterLink"
+            android:text="@string/drawer_terms" />
+    </LinearLayout>
+</LinearLayout>

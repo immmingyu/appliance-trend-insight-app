@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ☰ 메뉴(drawer_content.xml)에서만 쓰는 스타일. 색 · 글자 · 간격은 디자인 시스템 이름만 쓴다 -->
+<resources>
+    <!-- 구역 제목: 작은 글씨 · ink_3 · 굵게 -->
+    <style name="DrawerSectionTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/space_4</item>
+        <item name="android:paddingStart">@dimen/space_4</item>
+        <item name="android:paddingEnd">@dimen/space_4</item>
+        <item name="android:paddingBottom">@dimen/space_1</item>
+        <item name="android:textAppearance">@style/TextAppearance.Gajeon.Caption</item>
+        <item name="android:textColor">@color/ink_3</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 요약 칸 한 칸 (누르면 해당 화면) -->
+    <style name="DrawerSummaryCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingStart">@dimen/space_3</item>
+        <item name="android:paddingEnd">@dimen/space_3</item>
+        <item name="android:paddingTop">@dimen/space_2</item>
+        <item name="android:paddingBottom">@dimen/space_2</item>
+    </style>
+
+    <style name="DrawerSummaryLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.Gajeon.Caption</item>
+    </style>
+
+    <!-- 숫자: 굵게. "2 / 3"의 " / 3"은 코드에서 작게 붙인다 -->
+    <style name="DrawerSummaryValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/space_1</item>
+        <item name="android:textAppearance">@style/TextAppearance.Gajeon.TitleSection</item>
+    </style>
+
+    <!-- 칸 사이 세로 나눔선 -->
+    <style name="DrawerSummaryDivider">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_marginTop">@dimen/space_2</item>
+        <item name="android:layout_marginBottom">@dimen/space_2</item>
+        <item name="android:background">@color/line</item>
+    </style>
+
+    <!-- 맨 아래 고객센터 · 약관: 작은 글씨, 터치 영역 48dp -->
+    <style name="DrawerFooterLink">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/touch_min</item>
+        <item name="android:minWidth">@dimen/touch_min</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/space_2</item>
+        <item name="android:paddingEnd">@dimen/space_2</item>
+        <item name="android:textAppearance">@style/TextAppearance.Gajeon.Caption</item>
+    </style>
+</resources>

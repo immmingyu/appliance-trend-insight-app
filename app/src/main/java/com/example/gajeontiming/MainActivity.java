@@ -1,21 +1,29 @@
 package com.example.gajeontiming;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Typeface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.net.Uri;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,17 +48,20 @@ import com.example.gajeontiming.auth.AccountSync;
 import com.example.gajeontiming.auth.SessionManager;
 import com.example.gajeontiming.b2b.MarketSearchActivity;
 import com.example.gajeontiming.b2b.PriceMonitorActivity;
+import com.example.gajeontiming.data.DrawerPrefs;
 import com.example.gajeontiming.data.RecentProductDb;
 import com.example.gajeontiming.data.TrendCache;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.TrendItem;
+import com.example.gajeontiming.model.Tiers;
 import com.example.gajeontiming.model.TrendResponse;
+import com.example.gajeontiming.model.UserSummary;
 import com.example.gajeontiming.network.ApiClient;
+import com.example.gajeontiming.network.AuthGuard;
 import com.example.gajeontiming.ui.Pulse;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
-import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,12 +81,14 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private DrawerLayout drawer;
-    private NavigationView nav;
     private boolean autoRetried;   // 트렌드를 못 받아 자동으로 한 번 다시 요청했는지
-    private TextView drawerUser;   // ☰ 메뉴 맨 위 로그인 상태
-    private MenuItem productsItem;   // ☰ 메뉴의 "제품 둘러보기" (누르면 카테고리가 펼쳐짐)
-    private final List<MenuItem> categoryItems = new ArrayList<>();
-    private boolean categoriesOpen = false;
+    // ☰ 메뉴
+    private final List<Chip> drawerChips = new ArrayList<>();   // "제품 둘러보기" 아래 품목 칩
+    private boolean categoriesOpen = true;
+    private boolean categoriesTouched;      // 사용자가 직접 펼치거나 접었는지
+    private UserSummary summary;            // 서버 요약 (없거나 실패하면 null → 숫자 "–")
+    private Call<UserSummary> summaryCall;  // 받는 중인 요청 (겹쳐 부르지 않는다)
+    private long summaryLoadedAt;
     private SwipeRefreshLayout swipe;
     private RecyclerView list;
     private View skeleton;   // 트렌드를 불러오는 동안 보여 주는 빈 카드들
@@ -141,19 +154,62 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
         // 로그인 상태를 서버와 맞추는 건 onResume에서 한다 (앱에 돌아올 때마다 · 1분 간격)
     }
 
-    // ── ☰ 메뉴: AI 추천 · AI 상담 · 가격 알림 · 마이페이지 ───────
+    // ── ☰ 메뉴 ────────────────────────────────────────────────
+    // 머리 영역 → 요약 3칸(로그인 전에는 로그인 카드) → 매장 모드 → 둘러보기 · AI 도우미 · 비즈니스 → 맨 아래
+    // 화면은 drawer_content.xml. 요약 숫자는 서버(/api/user/summary)를 기다리지 않고 "–"로 먼저 그린다
+
+    private static final long SUMMARY_FRESH_MS = 10_000;   // 메뉴를 연달아 열 때 요약을 다시 부르지 않는 간격
 
     private void setupDrawer(MaterialToolbar toolbar) {
         drawer = findViewById(R.id.home_drawer);
-        nav = findViewById(R.id.home_nav);
+        drawer.setDrawerElevation(0f);   // 그림자 없음
         toolbar.setNavigationOnClickListener(v -> drawer.openDrawer(GravityCompat.START));
-        nav.setNavigationItemSelectedListener(this::onDrawerItem);
-        setupDrawerCategories(nav.getMenu());
 
-        // 머리 부분(앱 이름 · 로그인 상태)을 누르면 마이페이지 (로그인은 마이페이지 안에서)
-        View header = nav.getHeaderView(0);
-        drawerUser = header.findViewById(R.id.drawer_user);
-        header.setOnClickListener(v -> openFromDrawer(MyPageActivity.class));
+        // ① 머리 영역 (로그인했을 때만 마이페이지로)
+        findViewById(R.id.drawer_close).setOnClickListener(v -> drawer.closeDrawer(GravityCompat.START));
+        findViewById(R.id.drawer_header).setOnClickListener(v -> {
+            if (SessionManager.isLoggedIn()) openFromDrawer(MyPageActivity.class);
+        });
+        findViewById(R.id.drawer_upgrade).setOnClickListener(v -> openFromDrawer(MyPageActivity.class));
+
+        // ② 요약 칸 · 로그인 카드
+        findViewById(R.id.drawer_sum_alerts).setOnClickListener(v -> openFromDrawer(AlertListActivity.class));
+        findViewById(R.id.drawer_sum_middle).setOnClickListener(v -> openFromDrawer(
+                summary != null && summary.marketAlertsToday != null
+                        ? PriceMonitorActivity.class : AlertListActivity.class));
+        findViewById(R.id.drawer_sum_recent).setOnClickListener(v -> openFromDrawer(MyPageActivity.class));
+        findViewById(R.id.drawer_login).setOnClickListener(v -> openFromDrawer(LoginActivity.class));
+
+        // ③ 매장 모드
+        findViewById(R.id.drawer_store).setOnClickListener(v -> openFromDrawer(StoreModeActivity.class));
+
+        // ④ 메뉴 줄
+        View products = findViewById(R.id.drawer_row_products);
+        bindRow(products, R.drawable.ic_apps, R.string.drawer_products, null);
+        products.setOnClickListener(v -> {
+            categoriesTouched = true;   // 직접 펼치고 접은 뒤에는 회원 유형에 따라 다시 바꾸지 않는다
+            setCategoriesOpen(!categoriesOpen);
+        });
+        setupDrawerCategories();
+        bindRow(findViewById(R.id.drawer_row_recommend), R.drawable.ic_tune, R.string.recommend_title,
+                RecommendActivity.class);
+        bindRow(findViewById(R.id.drawer_row_chat), R.drawable.ic_chat, R.string.chat_title, ChatActivity.class);
+        // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
+        bindRow(findViewById(R.id.drawer_row_alerts), R.drawable.ic_bell, R.string.alert_title,
+                AlertListActivity.class);
+        bindRow(findViewById(R.id.drawer_row_monitor), R.drawable.ic_trending, R.string.monitor_title,
+                PriceMonitorActivity.class);
+        bindRow(findViewById(R.id.drawer_row_market), R.drawable.ic_analytics, R.string.market_title,
+                MarketSearchActivity.class);
+        setRowDesc(findViewById(R.id.drawer_row_recommend), getString(R.string.drawer_recommend_desc));
+        setRowDesc(findViewById(R.id.drawer_row_chat), getString(R.string.drawer_chat_desc));
+        setRowDesc(findViewById(R.id.drawer_row_monitor), getString(R.string.drawer_monitor_desc));
+        setRowDesc(findViewById(R.id.drawer_row_market), getString(R.string.drawer_market_desc));
+
+        // ⑥ 맨 아래
+        findViewById(R.id.drawer_mypage).setOnClickListener(v -> openFromDrawer(MyPageActivity.class));
+        findViewById(R.id.drawer_support).setOnClickListener(v -> mailSupport());
+        findViewById(R.id.drawer_terms).setOnClickListener(v -> openUrl(AppLinks.TERMS_URL));
 
         // 메뉴가 열려 있을 때 뒤로 가기 → 앱을 닫지 말고 메뉴만 닫는다
         OnBackPressedCallback closeDrawer = new OnBackPressedCallback(false) {
@@ -164,6 +220,15 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
         };
         getOnBackPressedDispatcher().addCallback(this, closeDrawer);
         drawer.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                // 열기 시작할 때 요약을 새로 부른다 (메뉴는 기다리지 않고 바로 열린다)
+                if (newState != DrawerLayout.STATE_IDLE && !drawer.isDrawerOpen(GravityCompat.START)) {
+                    bindDrawerLocal();
+                    loadSummary(false);
+                }
+            }
+
             @Override
             public void onDrawerOpened(@NonNull View v) {
                 closeDrawer.setEnabled(true);
@@ -176,48 +241,70 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
         });
     }
 
-    /** "제품 둘러보기" 바로 아래에 카테고리를 숨긴 채로 넣어 둔다 (누르면 펼쳐짐) */
-    private void setupDrawerCategories(Menu menu) {
-        productsItem = menu.findItem(R.id.drawer_products);
-        int order = productsItem.getOrder() + 1;
-        for (String name : Categories.ALL) {
-            MenuItem item = menu.add(R.id.drawer_group_products, View.generateViewId(), order++, name);
-            item.setVisible(false);
-            categoryItems.add(item);
+    /** 메뉴 한 줄: 아이콘 · 제목 · 누르면 갈 화면. 지금 보고 있는 화면이면 옅은 주황으로 표시 */
+    private void bindRow(View row, int icon, int title, Class<?> target) {
+        ((ImageView) row.findViewById(R.id.row_icon)).setImageResource(icon);
+        ((TextView) row.findViewById(R.id.row_title)).setText(title);
+        if (target == null) return;
+        row.setOnClickListener(v -> openFromDrawer(target));
+        if (target == getClass()) {   // 메뉴가 홈에만 있어서 지금은 해당 없음 · 다른 화면에 메뉴가 생기면 쓰인다
+            int on = ContextCompat.getColor(this, R.color.on_brand_container);
+            row.setBackgroundResource(R.drawable.bg_drawer_row_active);
+            ((TextView) row.findViewById(R.id.row_title)).setTextColor(on);
+            ((TextView) row.findViewById(R.id.row_desc)).setTextColor(on);
+            ((ImageView) row.findViewById(R.id.row_icon)).setImageTintList(ColorStateList.valueOf(on));
         }
-        setCategoriesOpen(false);
+    }
+
+    /** 설명 줄: 있으면 보이고 줄 높이 56dp, 없으면 숨기고 48dp */
+    private void setRowDesc(View row, CharSequence desc) {
+        TextView d = row.findViewById(R.id.row_desc);
+        boolean has = desc != null && desc.length() > 0;
+        d.setText(desc);
+        d.setVisibility(has ? View.VISIBLE : View.GONE);
+        row.setMinimumHeight(dp(has ? 56 : 48));
+    }
+
+    /** "제품 둘러보기" 아래 품목 칩 (윤곽). 마지막에 본 품목만 선택 상태로 칠한다 (bindCategoryChips) */
+    private void setupDrawerCategories() {
+        ChipGroup group = findViewById(R.id.drawer_category_group);
+        for (String name : Categories.ALL) {
+            Chip chip = new Chip(this);
+            chip.setText(name);
+            chip.setOnClickListener(v -> {
+                drawer.closeDrawer(GravityCompat.START);
+                openProductList(name, name);   // 품목 제품 목록 → 제품을 누르면 상세(리포트)
+            });
+            group.addView(chip);
+            drawerChips.add(chip);
+        }
+        setCategoriesOpen(true);
     }
 
     private void setCategoriesOpen(boolean open) {
         categoriesOpen = open;
-        for (MenuItem item : categoryItems) item.setVisible(open);
-        productsItem.setTitle(open ? R.string.drawer_products_close : R.string.drawer_products_open);
+        findViewById(R.id.drawer_category_group).setVisibility(open ? View.VISIBLE : View.GONE);
+        ImageView end = findViewById(R.id.drawer_row_products).findViewById(R.id.row_end);
+        end.setVisibility(View.VISIBLE);
+        end.setImageResource(open ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
     }
 
-    private boolean onDrawerItem(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.drawer_products) {
-            // 메뉴는 닫지 않고 목록만 펼치거나 접는다.
-            // 클릭을 처리하는 동안 NavigationView가 목록 갱신을 멈춰 두므로, 처리가 끝난 뒤에 바꾼다
-            drawer.post(() -> setCategoriesOpen(!categoriesOpen));
-            return false;   // 선택 표시(하이라이트)는 남기지 않는다
+    private void bindCategoryChips() {
+        String last = DrawerPrefs.lastCategory(this);
+        ColorStateList selectedBg = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.brand_container));
+        int selectedText = ContextCompat.getColor(this, R.color.on_brand_container);
+        for (Chip chip : drawerChips) {
+            boolean selected = chip.getText().toString().equals(last);
+            if (chip.getTag() == null) {   // 처음 한 번: 테마 기본 모양을 기억해 둔다
+                chip.setTag(new ColorStateList[]{chip.getChipBackgroundColor(), chip.getChipStrokeColor(),
+                        chip.getTextColors()});
+            }
+            ColorStateList[] base = (ColorStateList[]) chip.getTag();
+            chip.setChipBackgroundColor(selected ? selectedBg : base[0]);
+            chip.setChipStrokeColor(selected ? selectedBg : base[1]);
+            if (selected) chip.setTextColor(selectedText);
+            else chip.setTextColor(base[2]);
         }
-        if (categoryItems.contains(item)) {
-            String name = item.getTitle().toString();
-            drawer.closeDrawer(GravityCompat.START);
-            openProductList(name, name);   // 카테고리 제품 목록 → 제품을 누르면 상세(리포트)
-            return true;
-        }
-        if (id == R.id.drawer_store) openFromDrawer(StoreModeActivity.class);          // 확장: 매장 모드
-        else if (id == R.id.drawer_recommend) openFromDrawer(RecommendActivity.class);
-        else if (id == R.id.drawer_chat) openFromDrawer(ChatActivity.class);
-        // 로그인 안 했으면 알림 화면이 로그인부터 띄운다
-        else if (id == R.id.drawer_alerts) openFromDrawer(AlertListActivity.class);
-        else if (id == R.id.drawer_mypage) openFromDrawer(MyPageActivity.class);
-        else if (id == R.id.drawer_price_monitor) openFromDrawer(PriceMonitorActivity.class);
-        else if (id == R.id.drawer_market) openFromDrawer(MarketSearchActivity.class);
-        else return false;
-        return true;
     }
 
     private void openFromDrawer(Class<?> target) {
@@ -225,7 +312,30 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
         startActivity(new Intent(this, target));
     }
 
-    /** 로그인 · 로그아웃하고 돌아올 수 있으니 화면에 돌아올 때마다 새로 쓴다 */
+    /** 고객센터: 메일 앱으로 문의 (메일 앱이 없으면 주소만 안내) */
+    private void mailSupport() {
+        Intent mail = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + AppLinks.SUPPORT_EMAIL));
+        mail.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.drawer_support_subject));
+        try {
+            startActivity(mail);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, getString(R.string.drawer_no_mail_app, AppLinks.SUPPORT_EMAIL),
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void openUrl(String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, url, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private int dp(int v) {
+        return Math.round(v * getResources().getDisplayMetrics().density);
+    }
+
     /** 안드로이드 13+: 승인 대기 사업자가 승인 결과 푸시를 받으려면 알림 권한이 필요하다 */
     private final ActivityResultLauncher<String> pushPermission = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(), granted -> { });
@@ -261,16 +371,148 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
         onAccountSynced();
     }
 
+    /** 로그인 · 로그아웃 · 승인 상태가 바뀌었을 수 있으니 화면에 돌아올 때마다 다시 그리고 요약을 새로 부른다 */
     private void bindDrawerUser() {
-        // 비즈니스 메뉴는 승인된 사업자 회원만 (승인 · 거절 푸시나 앱 복귀로 상태가 바뀌면 여기서 다시 그린다)
-        nav.getMenu().findItem(R.id.drawer_business).setVisible(SessionManager.isB2b());
-        String name = SessionManager.getName();
-        if (SessionManager.isLoggedIn()) {
-            drawerUser.setText(getString(R.string.drawer_user,
-                    name != null && !name.isEmpty() ? name : SessionManager.getEmail()));
-        } else {
-            drawerUser.setText(R.string.drawer_guest);
+        bindDrawerLocal();
+        loadSummary(true);
+    }
+
+    /** 서버를 기다리지 않고 기기에 있는 값으로 메뉴를 그린다 (요약 숫자는 받은 게 없으면 "–") */
+    private void bindDrawerLocal() {
+        boolean loggedIn = SessionManager.isLoggedIn();
+        if (!loggedIn) summary = null;
+        boolean b2bType = summary != null ? "b2b".equals(summary.userType)
+                : "b2b".equals(SessionManager.getUserType());
+
+        // ① 머리 영역: 로그인 전에는 머리글자 · 이름 대신 "가전무쌍"
+        findViewById(R.id.drawer_avatar).setVisibility(loggedIn ? View.VISIBLE : View.GONE);
+        findViewById(R.id.drawer_user_box).setVisibility(loggedIn ? View.VISIBLE : View.GONE);
+        findViewById(R.id.drawer_brand).setVisibility(loggedIn ? View.GONE : View.VISIBLE);
+        findViewById(R.id.drawer_header).setClickable(loggedIn);
+        if (loggedIn) {
+            String name = displayName();
+            ((TextView) findViewById(R.id.drawer_name)).setText(name);
+            ((TextView) findViewById(R.id.drawer_avatar)).setText(
+                    name.isEmpty() ? "" : name.substring(0, name.offsetByCodePoints(0, 1)));
+            String tier = summary != null ? summary.tier : SessionManager.getTier();
+            String tierLabel = summary != null && summary.tierLabel != null ? summary.tierLabel : Tiers.label(tier);
+            ((TextView) findViewById(R.id.drawer_tier)).setText(getString(R.string.drawer_tier_line,
+                    getString(b2bType ? R.string.drawer_type_b2b : R.string.drawer_type_b2c), tierLabel));
+            boolean free = tier == null || tier.isEmpty() || "free".equals(tier);
+            findViewById(R.id.drawer_upgrade).setVisibility(!b2bType && free ? View.VISIBLE : View.GONE);
         }
+
+        // ② 요약 칸 / 로그인 카드
+        findViewById(R.id.drawer_summary).setVisibility(loggedIn ? View.VISIBLE : View.GONE);
+        findViewById(R.id.drawer_guest).setVisibility(loggedIn ? View.GONE : View.VISIBLE);
+        if (loggedIn) bindSummaryNumbers();
+
+        // ③ 매장 모드 마지막 결과
+        bindStoreLast();
+
+        // ④ 품목: 사업자는 메뉴가 길어서 접힌 채로 시작 (직접 펼치고 접었으면 그대로)
+        boolean b2b = SessionManager.isB2b();
+        if (!categoriesTouched) setCategoriesOpen(!b2b);
+        bindCategoryChips();
+
+        // ④ 가격 알림 설명 · 비즈니스 구역 (승인된 사업자만, 승인 · 거절 푸시나 앱 복귀로 바뀌면 여기서 다시 그린다)
+        String alertDesc = null;
+        if (!loggedIn) alertDesc = getString(R.string.drawer_alerts_guest);
+        else if (summary != null && summary.alertsReached > 0)
+            alertDesc = getString(R.string.drawer_alerts_reached, summary.alertsReached);
+        setRowDesc(findViewById(R.id.drawer_row_alerts), alertDesc);
+        findViewById(R.id.drawer_business).setVisibility(b2b ? View.VISIBLE : View.GONE);
+
+        // ⑥ 마이페이지는 로그인했을 때만
+        findViewById(R.id.drawer_mypage).setVisibility(loggedIn ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    /** 닉네임 · 회사 이름 (서버 요약 → 기기에 저장된 이름 → 이메일 앞부분) */
+    private String displayName() {
+        if (summary != null && summary.displayName != null && !summary.displayName.isEmpty())
+            return summary.displayName;
+        String name = SessionManager.getName();
+        if (name != null && !name.isEmpty()) return name;
+        String email = SessionManager.getEmail();
+        return email == null ? "" : email.split("@")[0];
+    }
+
+    /** 가격 알림 "2 / 3" · 목표가 도달 "1"(0보다 크면 주황) 또는 오늘 시장 알림 · 최근 본 제품 "4" */
+    private void bindSummaryNumbers() {
+        TextView alerts = findViewById(R.id.drawer_sum_alerts_value);
+        TextView middleLabel = findViewById(R.id.drawer_sum_middle_label);
+        TextView middle = findViewById(R.id.drawer_sum_middle_value);
+        int ink = ContextCompat.getColor(this, R.color.ink);
+
+        boolean market = summary != null && summary.marketAlertsToday != null;
+        middleLabel.setText(market ? R.string.drawer_sum_market : R.string.drawer_sum_reached);
+        if (summary == null) {
+            alerts.setText(R.string.drawer_sum_empty);
+            middle.setText(R.string.drawer_sum_empty);
+            middle.setTextColor(ink);
+        } else {
+            SpannableStringBuilder a = new SpannableStringBuilder(String.valueOf(
+                    summary.alerts != null ? summary.alerts.count : 0));
+            if (summary.alerts != null && summary.alerts.limit > 0) {
+                int start = a.length();
+                a.append(" / ").append(String.valueOf(summary.alerts.limit));
+                a.setSpan(new RelativeSizeSpan(0.75f), start, a.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                a.setSpan(new StyleSpan(Typeface.NORMAL), start, a.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                a.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.ink_2)),
+                        start, a.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            alerts.setText(a);
+            int n = market ? summary.marketAlertsToday : summary.alertsReached;
+            middle.setText(String.valueOf(n));
+            middle.setTextColor(n > 0 ? ContextCompat.getColor(this, R.color.brand_text) : ink);
+        }
+        ((TextView) findViewById(R.id.drawer_sum_recent_value))
+                .setText(String.valueOf(RecentProductDb.get(this).count()));
+    }
+
+    /** 매장 모드 버튼 아래: 최근 찍은 제품 · 모델명 · 판단 배지 (저장된 결과가 없으면 숨김) */
+    private void bindStoreLast() {
+        String model = DrawerPrefs.storeModel(this);
+        View strip = findViewById(R.id.drawer_store_last);
+        if (model == null) {
+            strip.setVisibility(View.GONE);
+            return;
+        }
+        strip.setVisibility(View.VISIBLE);
+        int score = DrawerPrefs.storeScore(this);
+        ((TextView) findViewById(R.id.drawer_store_model)).setText(model);
+        TextView badge = findViewById(R.id.drawer_store_verdict);
+        badge.setText(DrawerPrefs.verdictLabel(score));
+        badge.getBackground().mutate().setTint(ContextCompat.getColor(this, DrawerPrefs.verdictColor(score)));
+    }
+
+    /** 요약을 서버에서 받는다. 느리거나 실패하면 숫자만 "–"로 두고 메뉴는 그대로 쓴다 */
+    private void loadSummary(boolean force) {
+        if (!SessionManager.isLoggedIn() || summaryCall != null) return;
+        if (!force && System.currentTimeMillis() - summaryLoadedAt < SUMMARY_FRESH_MS) return;
+        summaryCall = ApiClient.get().getSummary();
+        summaryCall.enqueue(new Callback<UserSummary>() {
+            @Override
+            public void onResponse(@NonNull Call<UserSummary> call, @NonNull Response<UserSummary> response) {
+                summaryCall = null;
+                if (AuthGuard.isLoggedOut(response)) {   // 로그인 만료 → 로그인 전 메뉴로
+                    summary = null;
+                } else if (response.isSuccessful() && response.body() != null) {
+                    summary = response.body();
+                    summaryLoadedAt = System.currentTimeMillis();
+                } else {
+                    summary = null;
+                }
+                if (!isFinishing()) bindDrawerLocal();
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UserSummary> call, @NonNull Throwable t) {
+                summaryCall = null;
+                summary = null;
+                if (!isFinishing()) bindDrawerLocal();
+            }
+        });
     }
 
     /** 리포트를 보고 돌아오면 최근 본 제품을 새로 그린다 */
@@ -333,6 +575,7 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
     }
 
     private void openProductList(String query, String category) {
+        DrawerPrefs.saveLastCategory(this, category);   // ☰ 메뉴 품목 칩 중 이것만 선택 상태
         Intent intent = new Intent(this, ProductListActivity.class);
         intent.putExtra(ProductListActivity.EXTRA_QUERY, query);
         intent.putExtra(ProductListActivity.EXTRA_CATEGORY, category);
