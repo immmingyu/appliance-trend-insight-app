@@ -18,6 +18,7 @@ import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -165,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
     private void setupDrawer(MaterialToolbar toolbar) {
         drawer = findViewById(R.id.home_drawer);
         drawer.setDrawerElevation(0f);   // 그림자 없음
+        applyDrawerWidth();
         applyDrawerInsets();
         toolbar.setNavigationOnClickListener(v -> drawer.openDrawer(GravityCompat.START));
 
@@ -251,14 +253,35 @@ public class MainActivity extends AppCompatActivity implements AccountAware {
      */
     private void applyDrawerInsets() {
         View header = findViewById(R.id.drawer_header);
+        View footer = findViewById(R.id.drawer_footer);
         int baseTop = header.getPaddingTop();
+        int baseBottom = footer.getPaddingBottom();
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.home_nav), (v, insets) -> {
             int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()
                     | WindowInsetsCompat.Type.displayCutout()).top;
             header.setPadding(header.getPaddingLeft(), baseTop + top,
                     header.getPaddingRight(), header.getPaddingBottom());
+            // 맨 아래 줄이 제스처 바 · 3버튼 내비게이션 바에 가리지 않게
+            int bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            footer.setPadding(footer.getPaddingLeft(), footer.getPaddingTop(),
+                    footer.getPaddingRight(), baseBottom + bottom);
             return insets;
         });
+    }
+
+    /**
+     * 메뉴 너비 = 화면 너비 - 56dp, 최대 360dp (태블릿 · 가로 모드에서도 넘지 않게).
+     * 화면이 돌거나 창 크기가 바뀌면 화면을 새로 만들면서 다시 계산된다.
+     */
+    private void applyDrawerWidth() {
+        View nav = findViewById(R.id.home_nav);
+        float density = getResources().getDisplayMetrics().density;
+        int screen = Math.round(getResources().getConfiguration().screenWidthDp * density);
+        int width = Math.min(screen - getResources().getDimensionPixelSize(R.dimen.drawer_side_gap),
+                getResources().getDimensionPixelSize(R.dimen.drawer_max_width));
+        ViewGroup.LayoutParams lp = nav.getLayoutParams();
+        lp.width = width;
+        nav.setLayoutParams(lp);
     }
 
     /** 메뉴 한 줄: 아이콘 · 제목 · 누르면 갈 화면. 지금 보고 있는 화면이면 옅은 주황으로 표시 */
