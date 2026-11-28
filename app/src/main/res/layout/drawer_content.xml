@@ -62,6 +62,7 @@
                         android:maxLines="1"
                         android:textAppearance="@style/TextAppearance.Gajeon.TitleSection" />
 
+                    <!-- 등급 줄: 길면 등급 글자가 줄어들며 … 처리되고 "등급 올리기"는 항상 보인다 -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -71,6 +72,9 @@
                             android:id="@+id/drawer_tier"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
                             android:textAppearance="@style/TextAppearance.Gajeon.Caption" />
 
                         <!-- 무료 개인 회원만 -->
@@ -79,6 +83,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/space_1"
+                            android:maxLines="1"
                             android:text="@string/drawer_upgrade"
                             android:textAppearance="@style/TextAppearance.Gajeon.Caption"
                             android:textColor="@color/brand_text"
@@ -363,13 +368,18 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ⑥ 맨 아래: 마이페이지 · 고객센터 · 약관 (위에 선 1dp) -->
+    <!--
+        ⑥ 맨 아래: 마이페이지 · 고객센터 · 약관 (위에 선 1dp).
+        마이페이지는 왼쪽, 고객센터 · 약관은 오른쪽 (사이 Space가 늘어나 너비가 넓어지면 간격이 벌어진다).
+        아래쪽에 내비게이션 바 높이만큼 패딩을 더한다 (MainActivity.applyDrawerInsets)
+    -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/line" />
 
     <LinearLayout
+        android:id="@+id/drawer_footer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"

@@ -11,5 +11,9 @@
     <dimen name="radius_md">16dp</dimen> <!-- 카드 · 버튼 · 입력칸 -->
     <dimen name="radius_lg">28dp</dimen> <!-- 검색창 · 매장 모드 판단 카드 -->
 
-    <dimen name="touch_min">48dp</dimen> <!-- 버튼 최소 높이 -->
+    <dimen name="touch_min">48dp</dimen>
+
+    <!-- ☰ 메뉴 너비: 화면 너비 - drawer_side_gap, 최대 drawer_max_width -->
+    <dimen name="drawer_side_gap">56dp</dimen>
+    <dimen name="drawer_max_width">360dp</dimen> <!-- 버튼 최소 높이 -->
 </resources>

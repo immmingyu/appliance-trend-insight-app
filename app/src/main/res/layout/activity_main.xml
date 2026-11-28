@@ -268,15 +268,16 @@
 
     <!--
         ☰ 메뉴 (왼쪽에서 열림). NavigationView는 틀(오른쪽 모서리 28dp · 그림자 없음 · 시스템 여백)로만 쓰고
-        기본 메뉴 · 헤더 대신 drawer_content.xml을 넣는다
+        기본 메뉴 · 헤더 대신 drawer_content.xml을 넣는다.
+        너비는 MainActivity.applyDrawerWidth가 "화면 너비 - 56dp, 최대 360dp"로 정한다 (maxWidth는 그 상한)
     -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/home_nav"
-        android:layout_width="304dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@color/page"
-        android:maxWidth="320dp"
+        android:maxWidth="@dimen/drawer_max_width"
         app:drawerLayoutCornerSize="@dimen/radius_lg"
         app:elevation="0dp">
 
