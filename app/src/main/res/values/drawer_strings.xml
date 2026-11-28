@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ☰ 메뉴(드로어) 문구 -->
+<resources>
+    <string name="drawer_close">메뉴 닫기</string>
+    <string name="drawer_type_b2c">개인 회원</string>
+    <string name="drawer_type_b2b">사업자</string>
+    <string name="drawer_tier_line">%1$s · %2$s</string>
+    <string name="drawer_upgrade">· 등급 올리기</string>
+
+    <!-- 요약 칸 -->
+    <string name="drawer_sum_alerts">가격 알림</string>
+    <string name="drawer_sum_reached">목표가 도달</string>
+    <string name="drawer_sum_market">오늘 시장 알림</string>
+    <string name="drawer_sum_recent">최근 본 제품</string>
+    <string name="drawer_sum_empty">–</string>
+
+    <!-- 로그인 전 카드 -->
+    <string name="drawer_guest_title">로그인하면 원하는 가격에 닿을 때 알려 드려요</string>
+    <string name="drawer_guest_desc">가격 알림 3개 · 최근 본 제품 저장 · 기기 바꿔도 그대로</string>
+    <string name="drawer_guest_button">로그인 · 회원가입</string>
+
+    <!-- 매장 모드 -->
+    <string name="drawer_store_desc">가격표 모델명을 찍어 바로 판단</string>
+    <string name="drawer_store_last">최근 찍은 제품</string>
+    <!-- 판단 4단계 (verdict_* 색과 함께) -->
+    <string name="verdict_best">최고</string>
+    <string name="verdict_good">좋음</string>
+    <string name="verdict_hold">보통</string>
+    <string name="verdict_wait">대기</string>
+
+    <!-- 구역 · 메뉴 -->
+    <string name="drawer_section_browse">둘러보기</string>
+    <string name="drawer_section_ai">AI 도우미</string>
+    <string name="drawer_recommend_desc">예산과 조건으로 골라 드려요</string>
+    <string name="drawer_chat_desc">궁금한 점을 바로 물어보세요</string>
+    <string name="drawer_alerts_reached">목표가에 닿은 제품이 %1$d개 있어요</string>
+    <string name="drawer_alerts_guest">로그인하면 쓸 수 있어요</string>
+    <string name="drawer_monitor_desc">시장 흐름 보기</string>
+    <string name="drawer_market_desc">모델 하나의 가격 · 후기 · 경쟁 제품</string>
+
+    <!-- 맨 아래 -->
+    <string name="drawer_support">고객센터</string>
+    <string name="drawer_terms">약관</string>
+    <string name="drawer_support_subject">[가전무쌍] 문의</string>
+    <string name="drawer_no_mail_app">메일 앱이 없어요. %1$s 으로 보내 주세요</string>
+</resources>

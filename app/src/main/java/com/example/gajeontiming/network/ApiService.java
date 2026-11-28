@@ -17,6 +17,7 @@ import com.example.gajeontiming.model.RecommendResponse;
 import com.example.gajeontiming.model.ReportResponse;
 import com.example.gajeontiming.model.TimingResponse;
 import com.example.gajeontiming.model.TrendResponse;
+import com.example.gajeontiming.model.UserSummary;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -153,6 +154,10 @@ public interface ApiService {
 
     @GET("api/user/alerts")
     Call<AlertModels.AlertListResponse> getAlerts();
+
+    // ☰ 메뉴 요약: 이름 · 등급 · 가격 알림 개수/한도 · 목표가 도달 수 (로그인 필요)
+    @GET("api/user/summary")
+    Call<UserSummary> getSummary();
 
     // 같은 제품을 이미 등록했으면 409
     @POST("api/user/alerts")

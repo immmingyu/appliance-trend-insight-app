@@ -171,10 +171,6 @@
     <string name="product_searching">‘%1$s’ 검색하는 중…</string>
     <string name="drawer_open">메뉴 열기</string>
     <string name="drawer_products">제품 둘러보기</string>
-    <string name="drawer_products_open">제품 둘러보기  ▾</string>
-    <string name="drawer_products_close">제품 둘러보기  ▴</string>
-    <string name="drawer_guest">로그인하고 가격 알림 받기 ›</string>
-    <string name="drawer_user">%1$s님 ›</string>
     <string name="browse_hint">%1$s 중에서 검색 (예: 무풍, 21평)</string>
     <string name="brand_all">전체</string>
     <string name="mypage_info_title">앱 정보</string>

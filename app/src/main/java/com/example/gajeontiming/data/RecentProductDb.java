@@ -100,6 +100,11 @@ public class RecentProductDb extends SQLiteOpenHelper {
         return result;
     }
 
+    /** 저장된 최근 본 제품 수 (☰ 메뉴 요약 칸) */
+    public int count() {
+        return (int) android.database.DatabaseUtils.queryNumEntries(getReadableDatabase(), TABLE);
+    }
+
     public void clear() {
         getWritableDatabase().delete(TABLE, null, null);
     }

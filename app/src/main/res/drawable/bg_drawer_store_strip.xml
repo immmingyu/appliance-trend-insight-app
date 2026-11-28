@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 매장 모드 버튼 아래 "최근 찍은 제품" 줄: 진한 주황, 아래쪽 모서리만 둥글게 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners
+        android:bottomLeftRadius="@dimen/radius_md"
+        android:bottomRightRadius="@dimen/radius_md"
+        android:topLeftRadius="0dp"
+        android:topRightRadius="0dp" />
+    <solid android:color="@color/brand_pressed" />
+</shape>

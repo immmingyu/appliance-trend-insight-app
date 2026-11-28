@@ -23,6 +23,7 @@ import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
 import com.example.gajeontiming.alert.AlertRegistration;
+import com.example.gajeontiming.data.DrawerPrefs;
 import com.example.gajeontiming.judge.TimingJudge;
 import com.example.gajeontiming.model.Categories;
 import com.example.gajeontiming.model.CategoryResponse;
@@ -391,6 +392,7 @@ public class StoreModeActivity extends AppCompatActivity {
             return;
         }
         judgeBox.setVisibility(View.VISIBLE);
+        DrawerPrefs.saveStoreResult(this, model, r.score);   // ☰ 메뉴 "최근 찍은 제품" 줄
         int c = ContextCompat.getColor(this, r.score >= 75 ? R.color.score_green
                 : r.score >= 55 ? R.color.score_blue
                 : r.score >= 40 ? R.color.score_yellow : R.color.score_red);
